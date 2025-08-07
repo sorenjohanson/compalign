@@ -26,8 +26,8 @@ export interface SalaryCalculation {
   netMargin: number;
   netMarginPercentage: number;
   
-  // Utilization and fuzzy costs
-  utilizationRate: number;
+  // Utilisation and fuzzy costs
+  utilisationRate: number;
   realBillableHoursPerYear: number;
   fuzzyCostBreakdown: {
     salesDemos: { hoursPerWeek: number; annualHours: number; costValue: number };
@@ -52,8 +52,8 @@ export interface CalculatorConfig {
   workingDaysPerWeek: number; // 5 days
   hoursPerWorkingDay: number; // 8 hours
   
-  // Real-world utilization and fuzzy costs
-  utilizationRate: number; // % of working hours that are billable (0.6 = 60%)
+  // Real-world utilisation and fuzzy costs
+  utilisationRate: number; // % of working hours that are billable (0.6 = 60%)
   salesDemosHours: number; // Hours per week on sales demos
   internalMeetingsHours: number; // Hours per week on internal meetings
   adminTasksHours: number; // Hours per week on admin/paperwork
@@ -72,8 +72,8 @@ export const defaultConfig: CalculatorConfig = {
   workingDaysPerWeek: 5,
   hoursPerWorkingDay: 8,
   
-  // Real-world utilization defaults (based on consulting industry averages)
-  utilizationRate: 0.65, // 65% - realistic for consulting/professional services
+  // Real-world utilisation defaults (based on consulting industry averages)
+  utilisationRate: 0.65, // 65% - realistic for consulting/professional services
   salesDemosHours: 2, // 2 hours per week on average
   internalMeetingsHours: 4, // 4 hours per week (team meetings, planning, etc.)
   adminTasksHours: 2, // 2 hours per week (timesheets, expenses, etc.)
@@ -82,6 +82,88 @@ export const defaultConfig: CalculatorConfig = {
   // Negotiation target (industry average for professional services)
   targetNetMargin: 25 // 25% target net margin for salary negotiations
 };
+
+// localStorage utilities for settings persistence
+const SETTINGS_STORAGE_KEY = 'salary-calculator-settings';
+const INPUT_VALUES_STORAGE_KEY = 'salary-calculator-inputs';
+
+export function saveSettingsToStorage(config: CalculatorConfig): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(config));
+    }
+  } catch (error) {
+    console.warn('Failed to save settings to localStorage:', error);
+  }
+}
+
+export function loadSettingsFromStorage(): CalculatorConfig {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as CalculatorConfig;
+        // Validate that all required properties exist, merge with defaults for missing ones
+        return {
+          ...defaultConfig,
+          ...parsed
+        };
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load settings from localStorage:', error);
+  }
+  return defaultConfig;
+}
+
+export function clearSettingsFromStorage(): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem(SETTINGS_STORAGE_KEY);
+    }
+  } catch (error) {
+    console.warn('Failed to clear settings from localStorage:', error);
+  }
+}
+
+// Input values persistence
+export interface InputValues {
+  grossSalary: number;
+  customerRate: number;
+}
+
+export const defaultInputValues: InputValues = {
+  grossSalary: 90000,
+  customerRate: 110
+};
+
+export function saveInputValuesToStorage(inputs: InputValues): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(INPUT_VALUES_STORAGE_KEY, JSON.stringify(inputs));
+    }
+  } catch (error) {
+    console.warn('Failed to save input values to localStorage:', error);
+  }
+}
+
+export function loadInputValuesFromStorage(): InputValues {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = localStorage.getItem(INPUT_VALUES_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as InputValues;
+        return {
+          ...defaultInputValues,
+          ...parsed
+        };
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load input values from localStorage:', error);
+  }
+  return defaultInputValues;
+}
 
 export function calculateSalaryBreakdown(
   grossSalaryAnnual: number,
@@ -107,8 +189,8 @@ export function calculateSalaryBreakdown(
   const billableDays = workingDaysPerYear - config.trainingDays;
   const billableHoursPerYear = billableDays * config.hoursPerWorkingDay;
   
-  // Real-world billable hours using utilization rate
-  const realBillableHoursPerYear = Math.floor(billableHoursPerYear * config.utilizationRate);
+  // Real-world billable hours using utilisation rate
+  const realBillableHoursPerYear = Math.floor(billableHoursPerYear * config.utilisationRate);
   
   // Calculate fuzzy cost breakdown
   const workingWeeksPerYear = Math.floor(workingDaysPerYear / 5); // Convert days to weeks
@@ -179,7 +261,7 @@ export function calculateSalaryBreakdown(
     grossMarginPercentage,
     netMargin,
     netMarginPercentage,
-    utilizationRate: config.utilizationRate,
+    utilisationRate: config.utilisationRate,
     realBillableHoursPerYear,
     fuzzyCostBreakdown,
     nonBillableTimeValue,
@@ -202,8 +284,8 @@ export function formatPercentage(percentage: number): string {
   return `${percentage.toFixed(1)}%`;
 }
 
-// Function to analyze different salary scenarios
-export function analyzeSalaryScenarios(
+// Function to analyse different salary scenarios
+export function analyseSalaryScenarios(
   salaryOptions: number[],
   customerHourlyRate: number,
   config: CalculatorConfig = defaultConfig
@@ -266,7 +348,7 @@ export const industryBenchmarks: IndustryBenchmark[] = [
     category: 'IT Consulting Firms',
     netMarginRange: { min: 8, max: 15 },
     grossMarginRange: { min: 25, max: 45 },
-    description: 'Specialized IT consulting and professional services',
+    description: 'Specialised IT consulting and professional services',
     source: '2024 Industry Data'
   },
   {
@@ -277,7 +359,7 @@ export const industryBenchmarks: IndustryBenchmark[] = [
     source: '2024 Industry Data'
   },
   {
-    category: 'Freelancer Platforms',
+    category: 'Recruitment Agencies (Freelancers)',
     netMarginRange: { min: 10, max: 35 },
     grossMarginRange: { min: 20, max: 50 },
     description: 'Platforms and agencies managing freelance contractors',
@@ -293,60 +375,86 @@ export interface MarginComparison {
   recommendations: string[];
 }
 
-export function generateNegotiationInsights(
-  calculation: SalaryCalculation
+// Strategic insights for financial analysis (non-duplicative)
+export function generateStrategicInsights(
+  calculation: SalaryCalculation,
+  config: CalculatorConfig
 ): NegotiationInsight[] {
   const insights: NegotiationInsight[] = [];
   
-  // Revenue analysis with utilization context
+  // Utilisation efficiency analysis
+  const utilisationGap = (1 - calculation.utilisationRate) * calculation.totalHoursPerYear;
   insights.push({
-    category: 'Revenue Generation',
-    description: `Annual revenue at ${formatPercentage(calculation.utilizationRate * 100)} utilisation rate`,
-    value: formatCurrency(calculation.annualRevenue),
-    impact: 'positive'
+    category: 'Utilisation Efficiency',
+    description: `${utilisationGap.toFixed(0)} hours of non-billable time annually`,
+    value: formatPercentage(calculation.utilisationRate * 100),
+    impact: calculation.utilisationRate >= 0.7 ? 'positive' : calculation.utilisationRate >= 0.6 ? 'neutral' : 'negative'
   });
   
-  // Utilisation efficiency
+  // Revenue multiplier analysis
+  const revenueMultiplier = calculation.annualRevenue / calculation.grossSalaryAnnual;
   insights.push({
-    category: 'Utilisation Rate',
-    description: 'Percentage of working hours that generate revenue',
-    value: formatPercentage(calculation.utilizationRate * 100),
-    impact: calculation.utilizationRate >= 0.7 ? 'positive' : calculation.utilizationRate >= 0.6 ? 'neutral' : 'negative'
+    category: 'Revenue Multiplier',
+    description: 'How many times salary is generated in revenue',
+    value: `${revenueMultiplier.toFixed(1)}x`,
+    impact: revenueMultiplier >= 3 ? 'positive' : revenueMultiplier >= 2 ? 'neutral' : 'negative'
   });
   
-  // Fuzzy costs impact
+  // Target margin performance
+  const marginGap = calculation.netMarginPercentage - config.targetNetMargin;
   insights.push({
-    category: 'Non-Billable Activities',
-    description: 'Value of sales demos, meetings, and admin work performed',
-    value: formatCurrency(calculation.fuzzyCostBreakdown.totalFuzzyCostValue),
-    impact: 'negative'
+    category: 'Target Performance',
+    description: marginGap >= 0 ? 'Exceeding target margin' : 'Below target margin',
+    value: `${marginGap >= 0 ? '+' : ''}${marginGap.toFixed(1)}%`,
+    impact: marginGap >= 0 ? 'positive' : 'negative'
   });
   
-  // Employee hourly value
+  // Break-even analysis
+  const breakEvenRevenue = calculation.totalEmployerCosts;
+  const breakEvenHours = Math.ceil(breakEvenRevenue / calculation.customerHourlyRate);
   insights.push({
-    category: 'Employee Hourly Rate',
-    description: 'Effective hourly rate based on total working hours',
-    value: formatCurrency(calculation.employeeHourlyRate),
-    impact: 'neutral'
+    category: 'Break-Even Point',
+    description: 'Billable hours needed to cover all costs',
+    value: `${breakEvenHours}h`,
+    impact: breakEvenHours <= calculation.realBillableHoursPerYear ? 'positive' : 'negative'
   });
   
-  // Company's effective rate
+  // Profit per hour analysis
+  const profitPerHour = calculation.netMargin / calculation.totalHoursPerYear;
   insights.push({
-    category: 'Total Employment Cost',
-    description: 'Company\'s total hourly cost including social contributions',
-    value: formatCurrency(calculation.employerCostHourlyRate),
-    impact: 'neutral'
-  });
-  
-  // Net margin with fuzzy costs considered
-  insights.push({
-    category: 'Company Net Margin',
-    description: 'Company margin after all employment costs',
-    value: `${formatCurrency(calculation.netMargin)} (${formatPercentage(calculation.netMarginPercentage)})`,
-    impact: calculation.netMarginPercentage > 30 ? 'positive' : 'negative'
+    category: 'Profit Per Hour',
+    description: 'Net profit generated per actual working hour',
+    value: formatCurrency(profitPerHour),
+    impact: profitPerHour >= 20 ? 'positive' : profitPerHour >= 10 ? 'neutral' : 'negative'
   });
   
   return insights;
+}
+
+// Helper function to get industry low, average, and high values
+export function getIndustryMarginStats() {
+  const allMins = industryBenchmarks.map(b => b.netMarginRange.min);
+  const allMaxs = industryBenchmarks.map(b => b.netMarginRange.max);
+  const allAvgs = industryBenchmarks.map(b => (b.netMarginRange.min + b.netMarginRange.max) / 2);
+  
+  return {
+    industryLow: Math.min(...allMins),
+    industryHigh: Math.max(...allMaxs),
+    industryAverage: allAvgs.reduce((sum, avg) => sum + avg, 0) / allAvgs.length
+  };
+}
+
+// Function to determine margin position relative to industry standards
+export function getMarginPosition(netMarginPercentage: number): 'below_low' | 'average' | 'above_high' {
+  const { industryLow, industryHigh } = getIndustryMarginStats();
+  
+  if (netMarginPercentage < industryLow) {
+    return 'below_low';
+  } else if (netMarginPercentage > industryHigh) {
+    return 'above_high';
+  } else {
+    return 'average';
+  }
 }
 
 // Function to compare margins with industry benchmarks
@@ -369,12 +477,12 @@ export function generateMarginComparison(
     }
   }
   
-  // Determine position relative to closest benchmark
-  // @TODO: Rework this to not go to closest benchmark (because that's weird and illogical) but instead overall industry average
+  // Determine position relative to industry standards (updated to use overall industry range)
+  const { industryLow, industryHigh } = getIndustryMarginStats();
   let industryPosition: 'below' | 'within' | 'above';
-  if (yourNetMargin < closestBenchmark.netMarginRange.min) {
+  if (yourNetMargin < industryLow) {
     industryPosition = 'below';
-  } else if (yourNetMargin > closestBenchmark.netMarginRange.max) {
+  } else if (yourNetMargin > industryHigh) {
     industryPosition = 'above';
   } else {
     industryPosition = 'within';

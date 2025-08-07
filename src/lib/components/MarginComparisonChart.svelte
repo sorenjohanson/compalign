@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { IndustryBenchmark, MarginComparison } from '$lib/salary-calculator';
-  import { formatPercentage } from '$lib/salary-calculator';
+  import { formatPercentage, getMarginPosition, getIndustryMarginStats } from '$lib/salary-calculator';
   import Target from '@lucide/svelte/icons/target';
   import TrendingUp from '@lucide/svelte/icons/trending-up';
   import TrendingDown from '@lucide/svelte/icons/trending-down';
@@ -12,20 +12,60 @@
 
   let { benchmarks, comparison }: Props = $props();
 
+  // Get margin position and industry stats
+  const marginPosition = $derived(getMarginPosition(comparison.yourNetMargin));
+  const industryStats = $derived(getIndustryMarginStats());
+
   // Create a clean data structure with your position clearly marked
   const chartData = $derived(() => {
-    const allMargins = [
-      ...benchmarks.map(b => ({ name: b.category, description: b.description, min: b.netMarginRange.min, max: b.netMarginRange.max, type: 'industry' as const })),
-      { name: 'Company Net Profit Margin', description: '', min: comparison.yourNetMargin, max: comparison.yourNetMargin, type: 'yours' as const }
-    ].sort((a, b) => a.min - b.min);
+    // Create all items first
+    const allItems = [
+      // Industry benchmarks
+      ...benchmarks.map(b => ({ 
+        name: b.category, 
+        description: b.description, 
+        min: b.netMarginRange.min, 
+        max: b.netMarginRange.max, 
+        type: 'industry' as const,
+        // Use average for positioning
+        avgMargin: (b.netMarginRange.min + b.netMarginRange.max) / 2
+      })),
+      // Company margin
+      { 
+        name: 'Company Net Profit Margin', 
+        description: '', 
+        min: comparison.yourNetMargin, 
+        max: comparison.yourNetMargin, 
+        type: 'yours' as const,
+        avgMargin: comparison.yourNetMargin
+      }
+    ];
     
-    return allMargins;
+    // Sort everything by average margin value for natural ordering
+    return allItems.sort((a, b) => a.avgMargin - b.avgMargin);
   });
 
-  const getStatusIcon = () => {
-    if (comparison.industryPosition === 'above') return TrendingUp;
-    if (comparison.industryPosition === 'below') return TrendingDown;
-    return Target;
+  // Get color classes based on margin position
+  const getCompanyColors = () => {
+    if (marginPosition === 'below_low') {
+      return {
+        bg: 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/50',
+        text: 'text-red-700 dark:text-red-400',
+        dot: 'bg-red-600'
+      };
+    } else if (marginPosition === 'above_high') {
+      return {
+        bg: 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/50',
+        text: 'text-blue-700 dark:text-blue-400',
+        dot: 'bg-blue-600'
+      };
+    } else {
+      return {
+        bg: 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950/50',
+        text: 'text-gray-900 dark:text-gray-100',
+        dot: 'bg-gray-900 dark:bg-gray-100'
+      };
+    }
   };
 
   const getStatusColor = () => {
@@ -37,23 +77,22 @@
 
 <div class="space-y-6">
   <!-- Position Summary -->
-  <div class="flex items-center justify-between p-4 rounded-lg border-2 {comparison.industryPosition === 'above' ? 'border-sky-200 bg-sky-50 dark:border-sky-800 dark:bg-sky-950/50' : comparison.industryPosition === 'below' ? 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/50' : 'border-teal-200 bg-teal-50 dark:border-teal-800 dark:bg-teal-950/50'}">
+  <div class="flex items-center justify-between p-4 rounded-lg border-2 {getCompanyColors().bg}">
     <div class="flex items-center gap-3">
-      <svelte:component this={getStatusIcon()} class="w-6 h-6 {getStatusColor()}" />
+      {#if comparison.industryPosition === 'above'}
+        <TrendingUp class="w-6 h-6 {getStatusColor()}" />
+      {:else if comparison.industryPosition === 'below'}
+        <TrendingDown class="w-6 h-6 {getStatusColor()}" />
+      {:else}
+        <Target class="w-6 h-6 {getStatusColor()}" />
+      {/if}
       <div>
         <div class="font-semibold text-lg">
-          Company Net Profit Margin: <span class="text-destructive">{formatPercentage(comparison.yourNetMargin)}</span>
+          Company Net Profit Margin: <span class="{getCompanyColors().text}">{formatPercentage(comparison.yourNetMargin)}</span>
         </div>
         <div class="text-sm text-muted-foreground">
-          {comparison.industryPosition === 'above' ? 'Above' : comparison.industryPosition === 'below' ? 'Below' : 'Within'} industry standards
+          {comparison.industryPosition === 'above' ? 'Above' : comparison.industryPosition === 'below' ? 'Below' : 'Within'} industry average
         </div>
-      </div>
-    </div>
-    <div class="text-right text-sm">
-      <div class="font-medium">Closest Match:</div>
-      <div class="text-muted-foreground">{comparison.closestBenchmark.category}</div>
-      <div class="font-mono text-xs">
-        {formatPercentage(comparison.closestBenchmark.netMarginRange.min)}-{formatPercentage(comparison.closestBenchmark.netMarginRange.max)}
       </div>
     </div>
   </div>
@@ -70,11 +109,11 @@
         <div class="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
           <div class="flex items-center gap-3">
             {#if item.type === 'yours'}
-              <div class="w-3 h-3 bg-destructive rounded-full animate-pulse"></div>
+              <div class="w-3 h-3 {getCompanyColors().dot} rounded-full animate-pulse"></div>
               <div>
-                <span class="font-semibold text-destructive">{item.name}</span>
+                <span class="font-semibold {getCompanyColors().text}">{item.name}</span>
               </div>
-            {:else}
+            {:else if item.type === 'industry'}
               <div class="w-3 h-3 {item.name === comparison.closestBenchmark.category ? 'bg-primary' : 'bg-muted-foreground'} rounded-full"></div>
               <div>
                 <div class="font-medium {item.name === comparison.closestBenchmark.category ? 'text-primary' : 'text-foreground'}">{item.name}</div>
@@ -85,10 +124,10 @@
           
           <div class="text-right">
             {#if item.type === 'yours'}
-              <div class="font-bold text-destructive text-lg">{formatPercentage(item.min)}</div>
-            {:else}
+              <div class="font-bold {getCompanyColors().text} text-lg">{formatPercentage(item.min)}</div>
+            {:else if item.type === 'industry'}
               <div class="font-semibold text-lg">{formatPercentage(item.min)} - {formatPercentage(item.max)}</div>
-              <div class="text-xs text-muted-foreground">Avg: {formatPercentage((item.min + item.max) / 2)}</div>
+              <div class="text-xs text-muted-foreground">Avg: {formatPercentage(item.avgMargin)}</div>
             {/if}
           </div>
         </div>
@@ -98,19 +137,19 @@
 
   <!-- Quick Stats -->
   <div class="grid grid-cols-3 gap-4">
-    <div class="text-center p-3 bg-muted/30 rounded-lg">
-      <div class="text-2xl font-bold text-sky-700 dark:text-sky-400">{formatPercentage(Math.max(...benchmarks.map(b => b.netMarginRange.max)))}</div>
-      <div class="text-xs text-muted-foreground">Industry High</div>
+    <div class="text-center p-3 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
+      <div class="text-2xl font-bold text-red-700 dark:text-red-400">{formatPercentage(industryStats.industryLow)}</div>
+      <div class="text-xs text-red-600 dark:text-red-400 font-medium">Industry Low</div>
     </div>
-    <div class="text-center p-3 bg-muted/30 rounded-lg">
-      <div class="text-2xl font-bold text-teal-700 dark:text-teal-400">
-        {formatPercentage(benchmarks.reduce((sum, b) => sum + (b.netMarginRange.min + b.netMarginRange.max) / 2, 0) / benchmarks.length)}
+    <div class="text-center p-3 bg-gray-50 dark:bg-gray-950/30 rounded-lg border border-gray-200 dark:border-gray-800">
+      <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        {formatPercentage(industryStats.industryAverage)}
       </div>
-      <div class="text-xs text-muted-foreground">Industry Average</div>
+      <div class="text-xs text-gray-700 dark:text-gray-300 font-medium">Industry Average</div>
     </div>
-    <div class="text-center p-3 bg-muted/30 rounded-lg">
-      <div class="text-2xl font-bold text-purple-700 dark:text-purple-400">{formatPercentage(Math.min(...benchmarks.map(b => b.netMarginRange.min)))}</div>
-      <div class="text-xs text-muted-foreground">Industry Low</div>
+    <div class="text-center p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+      <div class="text-2xl font-bold text-blue-700 dark:text-blue-400">{formatPercentage(industryStats.industryHigh)}</div>
+      <div class="text-xs text-blue-600 dark:text-blue-400 font-medium">Industry High</div>
     </div>
   </div>
 
