@@ -13,7 +13,7 @@
 	let isVerifying = $state(false);
 	let error = $state('');
 	
-	const sessionId = $page.params.sessionId;
+	const sessionId = $page.params.sessionId as string;
 
 	async function handleVerifyOTP() {
 		if (otpValue.length !== 6) {
@@ -43,10 +43,11 @@
 			}
 
 			if (result.valid) {
-				// Store the calculator data and redirect to main page
+				// Store the calculator data and redirect to collaborative calculator
 				localStorage.setItem('shared-calculator-data', JSON.stringify(result.calculatorData));
 				localStorage.setItem('is-shared-session', 'true');
-				goto('/?shared=true');
+				localStorage.setItem('collaboration-session-id', sessionId);
+				goto(`/share/${sessionId}/calculator`);
 			}
 		} catch (err) {
 			error = 'Network error. Please try again.';

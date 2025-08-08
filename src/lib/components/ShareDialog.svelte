@@ -15,6 +15,7 @@
 	import History from '@lucide/svelte/icons/history';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import { initializeCollaboration, joinSession } from '$lib/stores/collaboration';
 	
 	interface Props {
 		open: boolean;
@@ -41,7 +42,7 @@
 	let otpCopied = $state(false);
 	let isLoadingSession = $state(false);
 	let otpTimeRemaining = $state<number>(0);
-	let otpTimer = $state<number | null>(null);
+	let otpTimer = $state<ReturnType<typeof setInterval> | null>(null);
 	
 	async function createOrUpdateShare() {
 		isCreating = true;
@@ -73,6 +74,20 @@
 				createdAt: new Date(),
 				isUpdate: result.isUpdate
 			};
+
+			// Initialize collaboration and join the session as the creator
+			initializeCollaboration();
+			
+			// Store session ID for persistence
+			localStorage.setItem('collaboration-session-id', result.sessionId);
+			
+			// Join the collaboration session after a small delay
+			setTimeout(() => {
+				console.log('Creator joining collaboration session:', result.sessionId);
+				joinSession(result.sessionId, {
+					name: 'Session Creator'
+				});
+			}, 1000);
 			
 			startOTPTimer();
 		} catch (err) {
