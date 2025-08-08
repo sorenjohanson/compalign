@@ -109,17 +109,17 @@
 			</Dialog.Description>
 		</Dialog.Header>
 
-		<div class="space-y-6 py-4">
+		<div class="space-y-4 sm:space-y-6 py-4">
 			<!-- Pro Features Section -->
-			<div class="border rounded-lg p-4 bg-gradient-to-r from-sky-50/50 to-blue-50/50 dark:from-sky-950/20 dark:to-blue-950/20 border-sky-200/50 dark:border-sky-800/50">
+			<div class="border rounded-lg p-4 bg-gradient-to-r from-blue-50/50 to-blue-50/50 dark:from-blue-950/20 dark:to-blue-950/20 border-blue-200/50 dark:border-blue-800/50">
 				<div class="flex items-center justify-between mb-3">
 					<div class="flex items-center gap-2">
 						{#if isProEnabled}
-							<Unlock class="h-5 w-5 text-sky-600 dark:text-sky-400" />
-							<span class="font-medium text-sky-700 dark:text-sky-400">Pro Features Unlocked</span>
+							<Unlock class="h-5 w-5 text-blue-600 dark:text-blue-300" />
+							<span class="font-medium text-blue-700 dark:text-blue-300">Pro Features Unlocked</span>
 						{:else}
-							<Lock class="h-5 w-5 text-sky-600 dark:text-sky-400" />
-							<span class="font-medium text-sky-700 dark:text-sky-400">Pro Features</span>
+							<Lock class="h-5 w-5 text-blue-600 dark:text-blue-300" />
+							<span class="font-medium text-blue-700 dark:text-blue-300">Pro Features</span>
 						{/if}
 					</div>
 					<Button
@@ -127,8 +127,8 @@
 						size="sm"
 						onclick={handleProToggle}
 						class={isProEnabled 
-							? "border-sky-300 text-sky-700 hover:bg-sky-50 dark:border-sky-700 dark:text-sky-400" 
-							: "bg-sky-600 hover:bg-sky-700 text-white"
+							? "border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300" 
+							: "bg-blue-600 hover:bg-blue-700 text-white"
 						}
 					>
 						{#if isProEnabled}
@@ -154,9 +154,9 @@
 			</div>
 
 			<!-- Work Schedule -->
-			<div class="space-y-4">
+			<div class="space-y-3 sm:space-y-4">
 				<h3 class="text-base font-medium border-b pb-2">Work Schedule</h3>
-				<div class="grid grid-cols-2 gap-4">
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<div class="space-y-2">
 						<label for="workingDaysPerWeek" class="text-sm font-medium">Working Days / Week</label>
 						<Input
@@ -185,9 +185,9 @@
 			</div>
 
 			<!-- Time Off -->
-			<div class="space-y-4">
+			<div class="space-y-3 sm:space-y-4">
 				<h3 class="text-base font-medium border-b pb-2">Time Off (Days per Year)</h3>
-				<div class="grid grid-cols-2 gap-4">
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<div class="space-y-2">
 						<label for="vacationDays" class="text-sm font-medium">Vacation</label>
 						<Input
@@ -240,14 +240,14 @@
 			</div>
 
 			<!-- Non-Billable Work -->
-			<div class="space-y-4">
-				<div class="flex items-center justify-between border-b pb-2">
+			<div class="space-y-3 sm:space-y-4">
+				<div class="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-2 gap-1">
 					<h3 class="text-base font-medium">Non-Billable Work (Hours/Week)</h3>
 					<span class="text-sm text-muted-foreground">
 						Utilisation: {calculatedUtilisationRate().toFixed(0)}%
 					</span>
 				</div>
-				<div class="grid grid-cols-2 gap-4">
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<div class="space-y-2">
 						<label for="internalMeetings" class="text-sm font-medium">Meetings</label>
 						<Input
@@ -300,9 +300,9 @@
 			</div>
 
 			<!-- Financial Settings -->
-			<div class="space-y-4">
+			<div class="space-y-3 sm:space-y-4">
 				<h3 class="text-base font-medium border-b pb-2">Financial Settings</h3>
-				<div class="grid grid-cols-2 gap-4">
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<div class="space-y-2">
 						<label for="employerRate" class="text-sm font-medium">Employer Costs (%)</label>
 						<Input
@@ -328,7 +328,7 @@
 						<p class="text-xs text-muted-foreground">Office, admin, tools, marketing costs (15% is typical)</p>
 					</div>
 				</div>
-				<div class="grid grid-cols-2 gap-4">
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<div class="space-y-2">
 						<label for="targetMargin" class="text-sm font-medium">Target Net Margin (%)</label>
 						<Input
@@ -345,7 +345,7 @@
 			</div>
 
 			<!-- Configuration Summary -->
-			<Card.Root>
+			<Card.Root class="sm:block hidden">
 				<Card.Header>
 					<Card.Title class="text-base">Configuration Summary</Card.Title>
 				</Card.Header>
@@ -402,12 +402,12 @@
 						</div>
 						<div class="flex justify-between border-t pt-1">
 							<span class="font-medium text-muted-foreground">Total non-billable hours/week:</span>
-							<span class="font-medium {!fuzzyHoursValidation.isValid ? 'text-red-600 dark:text-red-400' : ''}">
+							<span class="font-medium {!fuzzyHoursValidation.isValid ? 'text-slate-600 dark:text-slate-300' : ''}">
 								{fuzzyHoursValidation.totalFuzzyHours}h / {fuzzyHoursValidation.maxWeeklyHours}h
 							</span>
 						</div>
 						{#if !fuzzyHoursValidation.isValid}
-							<div class="text-xs text-red-600 dark:text-red-400 mt-1">
+							<div class="text-xs text-slate-600 dark:text-slate-300 mt-1">
 								⚠️ Exceeds weekly capacity by {fuzzyHoursValidation.exceededBy.toFixed(1)}h. Hours will be scaled down proportionally.
 							</div>
 						{/if}

@@ -49,9 +49,9 @@
   const getCompanyColors = () => {
     if (marginPosition === 'below_low') {
       return {
-        bg: 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/50',
-        text: 'text-red-700 dark:text-red-400',
-        dot: 'bg-red-600'
+        bg: 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50',
+        text: 'text-amber-700 dark:text-amber-300',
+        dot: 'bg-amber-600'
       };
     } else if (marginPosition === 'above_high') {
       return {
@@ -69,9 +69,9 @@
   };
 
   const getStatusColor = () => {
-    if (comparison.industryPosition === 'above') return 'text-sky-700 dark:text-sky-400';
-    if (comparison.industryPosition === 'below') return 'text-orange-700 dark:text-orange-400';
-    return 'text-teal-700 dark:text-teal-400';
+    if (comparison.industryPosition === 'above') return 'text-blue-700 dark:text-blue-300';
+    if (comparison.industryPosition === 'below') return 'text-amber-700 dark:text-amber-300';
+    return 'text-cyan-700 dark:text-cyan-300';
   };
 </script>
 
@@ -137,9 +137,9 @@
 
   <!-- Quick Stats -->
   <div class="grid grid-cols-3 gap-4">
-    <div class="text-center p-3 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
-      <div class="text-2xl font-bold text-red-700 dark:text-red-400">{formatPercentage(industryStats.industryLow)}</div>
-      <div class="text-xs text-red-600 dark:text-red-400 font-medium">Industry Low</div>
+    <div class="text-center p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+      <div class="text-2xl font-bold text-amber-700 dark:text-amber-300">{formatPercentage(industryStats.industryLow)}</div>
+      <div class="text-xs text-amber-600 dark:text-amber-300 font-medium">Industry Low</div>
     </div>
     <div class="text-center p-3 bg-gray-50 dark:bg-gray-950/30 rounded-lg border border-gray-200 dark:border-gray-800">
       <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -148,8 +148,8 @@
       <div class="text-xs text-gray-700 dark:text-gray-300 font-medium">Industry Average</div>
     </div>
     <div class="text-center p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-      <div class="text-2xl font-bold text-blue-700 dark:text-blue-400">{formatPercentage(industryStats.industryHigh)}</div>
-      <div class="text-xs text-blue-600 dark:text-blue-400 font-medium">Industry High</div>
+      <div class="text-2xl font-bold text-blue-700 dark:text-blue-300">{formatPercentage(industryStats.industryHigh)}</div>
+      <div class="text-xs text-blue-600 dark:text-blue-300 font-medium">Industry High</div>
     </div>
   </div>
 

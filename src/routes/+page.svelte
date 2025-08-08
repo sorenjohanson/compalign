@@ -80,11 +80,14 @@
     <div class="text-center mb-6 sm:mb-8">
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
         <div class="hidden sm:block flex-1"></div>
-        <div class="text-center flex items-center">
-          <div class="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-0">
+        <div class="text-center flex flex-col items-center">
+          <div class="flex items-center justify-center gap-2 sm:gap-3 mb-2">
             <Calculator class="w-12 h-12 text-primary hidden md:block" />
             <h1 class="text-3xl font-bold">Rate Transparency Calculator</h1>
           </div>
+          <p class="text-sm text-muted-foreground mb-4 sm:mb-0">
+            Open Beta • Unlock <span class="text-blue-600 dark:text-blue-400 font-medium">Pro</span> features in Settings
+          </p>
         </div>
         <div class="flex items-center gap-2 flex-1 justify-end">
           <DarkModeToggle />
@@ -119,7 +122,7 @@
                 <span class="text-xs sm:text-sm text-muted-foreground/60">Freelancer</span>
               </div>
               {#if !isProEnabled}
-                <Badge variant="secondary" class="bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-400 border-sky-200 dark:border-sky-800 text-xs">
+                <Badge variant="secondary" class="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-blue-200 dark:border-blue-800 text-xs">
                   <Lock class="w-3 h-3 mr-1" />
                   <span class="hidden xs:inline">Unlock with </span>Pro
                 </Badge>
@@ -172,11 +175,11 @@
       <Card.Root>
         <Card.Content class="p-4 sm:p-6">
           <div class="flex items-center space-x-3 sm:space-x-4">
-            <div class="p-2 bg-teal-100 dark:bg-teal-900/50 rounded-lg flex-shrink-0">
-              <TrendingUp class="w-5 h-5 sm:w-6 sm:h-6 text-teal-700 dark:text-teal-400" />
+            <div class="p-2 bg-cyan-100 dark:bg-cyan-900/50 rounded-lg flex-shrink-0">
+              <TrendingUp class="w-5 h-5 sm:w-6 sm:h-6 text-cyan-700 dark:text-cyan-300" />
             </div>
             <div class="min-w-0">
-              <div class="text-lg sm:text-2xl font-bold text-teal-700 dark:text-teal-400 truncate">{formatCurrency(calculation.annualRevenue)}</div>
+              <div class="text-lg sm:text-2xl font-bold text-cyan-700 dark:text-cyan-300 truncate">{formatCurrency(calculation.annualRevenue)}</div>
               <div class="text-xs sm:text-sm font-medium">Annual Revenue</div>
               <div class="text-xs text-muted-foreground mt-1">Generated for company</div>
             </div>
@@ -187,17 +190,17 @@
       <Card.Root>
         <Card.Content class="p-4 sm:p-6">
           <div class="flex items-center space-x-3 sm:space-x-4">
-            <div class="p-2 {marginStatus === 'above' ? 'bg-sky-100 dark:bg-sky-900/50' : marginStatus === 'exact' ? 'bg-gray-100 dark:bg-gray-900/50' : 'bg-orange-100 dark:bg-orange-900/50'} rounded-lg flex-shrink-0">
+            <div class="p-2 {marginStatus === 'above' ? 'bg-blue-100 dark:bg-blue-900/50' : marginStatus === 'exact' ? 'bg-gray-100 dark:bg-gray-900/50' : 'bg-amber-100 dark:bg-amber-900/50'} rounded-lg flex-shrink-0">
               {#if marginStatus === 'above'}
-                <ArrowUpRight class="w-5 h-5 sm:w-6 sm:h-6 text-sky-700 dark:text-sky-400" />
+                <ArrowUpRight class="w-5 h-5 sm:w-6 sm:h-6 text-blue-700 dark:text-blue-300" />
               {:else if marginStatus === 'exact'}
                 <ArrowRight class="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 dark:text-gray-400" />
               {:else}
-                <ArrowDownRight class="w-5 h-5 sm:w-6 sm:h-6 text-orange-700 dark:text-orange-400" />
+                <ArrowDownRight class="w-5 h-5 sm:w-6 sm:h-6 text-amber-700 dark:text-amber-300" />
               {/if}
             </div>
             <div class="min-w-0">
-              <div class="text-lg sm:text-2xl font-bold {marginStatus === 'above' ? 'text-sky-700 dark:text-sky-400' : marginStatus === 'exact' ? 'text-gray-700 dark:text-gray-400' : 'text-orange-700 dark:text-orange-400'} truncate">
+              <div class="text-lg sm:text-2xl font-bold {marginStatus === 'above' ? 'text-blue-700 dark:text-blue-300' : marginStatus === 'exact' ? 'text-gray-700 dark:text-gray-300' : 'text-amber-700 dark:text-amber-300'} truncate">
                 {formatCurrency(calculation.netMargin)}
               </div>
               <div class="text-xs sm:text-sm font-medium">Company Net Profit</div>
@@ -212,11 +215,11 @@
       <Card.Root>
         <Card.Content class="p-4 sm:p-6">
           <div class="flex items-center space-x-3 sm:space-x-4">
-            <div class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex-shrink-0">
-              <Users class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-700 dark:text-indigo-400" />
+            <div class="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex-shrink-0">
+              <Users class="w-5 h-5 sm:w-6 sm:h-6 text-blue-700 dark:text-blue-300" />
             </div>
             <div class="min-w-0">
-              <div class="text-lg sm:text-2xl font-bold text-indigo-700 dark:text-indigo-400 truncate">{formatCurrency(calculation.employeeHourlyRate)}</div>
+              <div class="text-lg sm:text-2xl font-bold text-blue-700 dark:text-blue-300 truncate">{formatCurrency(calculation.employeeHourlyRate)}</div>
               <div class="text-xs sm:text-sm font-medium">Employee Hourly Rate</div>
               <div class="text-xs text-muted-foreground mt-1">Based on total hours</div>
             </div>
@@ -227,11 +230,11 @@
       <Card.Root>
         <Card.Content class="p-4 sm:p-6">
           <div class="flex items-center space-x-3 sm:space-x-4">
-            <div class="p-2 bg-sky-100 dark:bg-sky-900/50 rounded-lg flex-shrink-0">
-              <Clock class="w-5 h-5 sm:w-6 sm:h-6 text-sky-700 dark:text-sky-400" />
+            <div class="p-2 bg-violet-100 dark:bg-violet-900/50 rounded-lg flex-shrink-0">
+              <Clock class="w-5 h-5 sm:w-6 sm:h-6 text-violet-700 dark:text-violet-300" />
             </div>
             <div class="min-w-0">
-              <div class="text-lg sm:text-2xl font-bold text-sky-700 dark:text-sky-400">{calculation.realBillableHoursPerYear} h</div>
+              <div class="text-lg sm:text-2xl font-bold text-violet-700 dark:text-violet-300">{calculation.realBillableHoursPerYear} h</div>
               <div class="text-xs sm:text-sm font-medium">Billable Hours</div>
               <div class="text-xs text-muted-foreground mt-1">{formatPercentage(calculation.utilisationRate * 100)} utilisation</div>
             </div>
@@ -252,12 +255,12 @@
       <Card.Content>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:h-80">
           <!-- Revenue Column -->
-          <div class="bg-teal-50/50 dark:bg-teal-950/20 rounded-lg p-4 border border-teal-200/50 dark:border-teal-800/50 flex flex-col h-full">
+          <div class="bg-cyan-50/50 dark:bg-cyan-950/20 rounded-lg p-4 border border-cyan-200/50 dark:border-cyan-800/50 flex flex-col h-full">
             <div class="flex items-center gap-2 mb-4">
-              <div class="p-1.5 bg-teal-100 dark:bg-teal-900/50 rounded">
-                <TrendingUp class="w-4 h-4 text-teal-600 dark:text-teal-400" />
+              <div class="p-1.5 bg-cyan-100 dark:bg-cyan-900/50 rounded">
+                <TrendingUp class="w-4 h-4 text-cyan-600 dark:text-cyan-300" />
               </div>
-              <h4 class="font-semibold text-sm uppercase tracking-wide text-teal-700 dark:text-teal-400">Revenue</h4>
+              <h4 class="font-semibold text-sm uppercase tracking-wide text-cyan-700 dark:text-cyan-300">Revenue</h4>
             </div>
             <div class="space-y-3 flex-1 flex flex-col justify-between">
               <div class="space-y-3">
@@ -271,16 +274,16 @@
                 </div>
               </div>
               <div class="space-y-3">
-                <div class="border-t border-teal-200 dark:border-teal-700 pt-3">
+                <div class="border-t border-cyan-200 dark:border-cyan-700 pt-3">
                   <div class="flex justify-between items-center">
                     <span class="font-medium text-gray-900 dark:text-gray-100">Total Annual Revenue</span>
-                    <span class="font-bold text-lg text-teal-700 dark:text-teal-400">{formatCurrency(calculation.annualRevenue)}</span>
+                    <span class="font-bold text-lg text-cyan-700 dark:text-cyan-300">{formatCurrency(calculation.annualRevenue)}</span>
                   </div>
                 </div>
-                <div class="bg-orange-50/50 dark:bg-orange-950/20 rounded px-3 py-2 border border-orange-200/50 dark:border-orange-800/50">
+                <div class="bg-gray-50 dark:bg-gray-800/50 rounded px-3 py-2 border border-gray-200 dark:border-gray-700">
                   <div class="flex justify-between items-center text-sm">
-                    <span class="text-orange-700 dark:text-orange-400">Non-billable Time Value</span>
-                    <span class="font-medium text-orange-700 dark:text-orange-400">{formatCurrency(calculation.nonBillableTimeValue)}</span>
+                    <span class="text-gray-600 dark:text-gray-400">Non-billable Time Value</span>
+                    <span class="font-medium text-gray-700 dark:text-gray-300">{formatCurrency(calculation.nonBillableTimeValue)}</span>
                   </div>
                 </div>
               </div>
@@ -288,12 +291,12 @@
           </div>
 
           <!-- Costs Column -->
-          <div class="bg-red-50/50 dark:bg-red-950/20 rounded-lg p-4 border border-red-200/50 dark:border-red-800/50 flex flex-col h-full">
+          <div class="bg-amber-50/50 dark:bg-amber-950/20 rounded-lg p-4 border border-amber-200/50 dark:border-amber-800/50 flex flex-col h-full">
             <div class="flex items-center gap-2 mb-4">
-              <div class="p-1.5 bg-red-100 dark:bg-red-900/50 rounded">
-                <Euro class="w-4 h-4 text-red-600 dark:text-red-400" />
+              <div class="p-1.5 bg-amber-100 dark:bg-amber-900/50 rounded">
+                <Euro class="w-4 h-4 text-amber-600 dark:text-amber-300" />
               </div>
-              <h4 class="font-semibold text-sm uppercase tracking-wide text-red-700 dark:text-red-400">Costs</h4>
+              <h4 class="font-semibold text-sm uppercase tracking-wide text-amber-700 dark:text-amber-300">Costs</h4>
             </div>
             <div class="space-y-3 flex-1 flex flex-col justify-between">
               <div class="space-y-3">
@@ -303,18 +306,18 @@
                 </div>
                 <div class="flex justify-between items-center py-1">
                   <span class="text-sm text-gray-600 dark:text-gray-300">Employer Costs ({formatPercentage(config.employerSocialContributionRate * 100)})</span>
-                  <span class="font-semibold text-amber-700 dark:text-amber-400">+{formatCurrency(calculation.employerSocialContributions)}</span>
+                  <span class="font-semibold text-amber-700 dark:text-amber-300">+{formatCurrency(calculation.employerSocialContributions)}</span>
                 </div>
                 <div class="flex justify-between items-center py-1">
                   <span class="text-sm text-gray-600 dark:text-gray-300">Overhead ({formatPercentage(config.overheadAsPercentOfRevenue * 100)})</span>
-                  <span class="font-semibold text-amber-700 dark:text-amber-400">+{formatCurrency(calculation.overheadCosts)}</span>
+                  <span class="font-semibold text-amber-700 dark:text-amber-300">+{formatCurrency(calculation.overheadCosts)}</span>
                 </div>
               </div>
               <div class="space-y-3">
-                <div class="border-t border-red-200 dark:border-red-700 pt-3">
+                <div class="border-t border-amber-200 dark:border-amber-700 pt-3">
                   <div class="flex justify-between items-center">
                     <span class="font-medium text-gray-900 dark:text-gray-100">Total Costs</span>
-                    <span class="font-bold text-lg text-red-700 dark:text-red-400">{formatCurrency(calculation.totalEmployerCosts + calculation.overheadCosts)}</span>
+                    <span class="font-bold text-lg text-amber-700 dark:text-amber-300">{formatCurrency(calculation.totalEmployerCosts + calculation.overheadCosts)}</span>
                   </div>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-800/50 rounded px-3 py-2 border border-gray-200 dark:border-gray-700">
@@ -328,33 +331,33 @@
           </div>
 
           <!-- Profitability Column -->
-          <div class="bg-sky-50/50 dark:bg-sky-950/20 rounded-lg p-4 border border-sky-200/50 dark:border-sky-800/50 flex flex-col h-full">
+          <div class="bg-blue-50/50 dark:bg-blue-950/20 rounded-lg p-4 border border-blue-200/50 dark:border-blue-800/50 flex flex-col h-full">
             <div class="flex items-center gap-2 mb-4">
-              <div class="p-1.5 bg-sky-100 dark:bg-sky-900/50 rounded">
-                <Target class="w-4 h-4 text-sky-600 dark:text-sky-400" />
+              <div class="p-1.5 bg-blue-100 dark:bg-blue-900/50 rounded">
+                <Target class="w-4 h-4 text-blue-600 dark:text-blue-300" />
               </div>
-              <h4 class="font-semibold text-sm uppercase tracking-wide text-sky-700 dark:text-sky-400">Profitability</h4>
+              <h4 class="font-semibold text-sm uppercase tracking-wide text-blue-700 dark:text-blue-300">Profitability</h4>
             </div>
             <div class="space-y-3 flex-1 flex flex-col justify-between">
               <div class="space-y-3">
                 <div class="flex justify-between items-center py-1">
                   <span class="text-sm text-gray-600 dark:text-gray-300">Gross Profit</span>
-                  <span class="font-semibold text-sky-700 dark:text-sky-400">{formatCurrency(calculation.grossMargin)}</span>
+                  <span class="font-semibold text-blue-700 dark:text-blue-300">{formatCurrency(calculation.grossMargin)}</span>
                 </div>
                 <div class="flex justify-between items-center py-1">
                   <span class="text-sm text-gray-600 dark:text-gray-300">Gross Margin %</span>
-                  <span class="font-semibold text-sky-700 dark:text-sky-400">{formatPercentage(calculation.grossMarginPercentage)}</span>
+                  <span class="font-semibold text-blue-700 dark:text-blue-300">{formatPercentage(calculation.grossMarginPercentage)}</span>
                 </div>
                 <div class="flex justify-between items-center py-1">
                   <span class="text-sm text-gray-600 dark:text-gray-300">Net Margin %</span>
-                  <span class="font-bold {calculation.netMargin >= 0 ? 'text-sky-700 dark:text-sky-400' : 'text-red-700 dark:text-red-400'}">{formatPercentage(calculation.netMarginPercentage)}</span>
+                  <span class="font-bold {calculation.netMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-amber-700 dark:text-amber-300'}">{formatPercentage(calculation.netMarginPercentage)}</span>
                 </div>
               </div>
               <div class="space-y-3">
-                <div class="border-t border-sky-200 dark:border-sky-700 pt-3">
+                <div class="border-t border-blue-200 dark:border-blue-700 pt-3">
                   <div class="flex justify-between items-center">
                     <span class="font-medium text-gray-900 dark:text-gray-100">Net Profit</span>
-                    <span class="font-bold text-lg {calculation.netMargin >= 0 ? 'text-sky-700 dark:text-sky-400' : 'text-red-700 dark:text-red-400'}">{formatCurrency(calculation.netMargin)}</span>
+                    <span class="font-bold text-lg {calculation.netMargin >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-amber-700 dark:text-amber-300'}">{formatCurrency(calculation.netMargin)}</span>
                   </div>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-800/50 rounded px-3 py-2 border border-gray-200 dark:border-gray-700">
@@ -383,17 +386,17 @@
         <Card.Content>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {#each strategicInsights as insight}
-              <div class="text-center p-3 sm:p-4 rounded-lg border {insight.impact === 'positive' ? 'bg-sky-50 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800' : insight.impact === 'negative' ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : 'bg-gray-50 dark:bg-gray-950/30 border-gray-200 dark:border-gray-800'}">
+              <div class="text-center p-3 sm:p-4 rounded-lg border {insight.impact === 'positive' ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800' : insight.impact === 'negative' ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' : 'bg-gray-50 dark:bg-gray-950/30 border-gray-200 dark:border-gray-800'}">
                 <div class="flex items-center justify-center mb-2 sm:mb-3">
                   {#if insight.impact === 'positive'}
-                    <ArrowUpRight class="w-5 h-5 sm:w-6 sm:h-6 text-sky-600 dark:text-sky-400" />
+                    <ArrowUpRight class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-300" />
                   {:else if insight.impact === 'negative'}
-                    <ArrowDownRight class="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400" />
+                    <ArrowDownRight class="w-5 h-5 sm:w-6 sm:h-6 text-amber-700 dark:text-amber-300" />
                   {:else}
                     <ArrowRight class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 dark:text-gray-400" />
                   {/if}
                 </div>
-                <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 {insight.impact === 'positive' ? 'text-sky-700 dark:text-sky-400' : insight.impact === 'negative' ? 'text-red-700 dark:text-red-400' : 'text-gray-700 dark:text-gray-400'}">
+                <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 {insight.impact === 'positive' ? 'text-blue-700 dark:text-blue-300' : insight.impact === 'negative' ? 'text-amber-700 dark:text-amber-300' : 'text-gray-700 dark:text-gray-300'}">
                   {insight.value}
                 </div>
                 <div class="font-medium text-xs sm:text-sm mb-1">{insight.category}</div>
@@ -402,33 +405,33 @@
             {/each}
             
             <!-- Working Time Analysis Cards -->
-            <div class="text-center p-3 sm:p-4 rounded-lg border bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800">
+            <div class="text-center p-3 sm:p-4 rounded-lg border bg-cyan-50 dark:bg-cyan-950/30 border-cyan-200 dark:border-cyan-800">
               <div class="flex items-center justify-center mb-2 sm:mb-3">
-                <Calendar class="w-5 h-5 sm:w-6 sm:h-6 text-teal-600 dark:text-teal-400" />
+                <Calendar class="w-5 h-5 sm:w-6 sm:h-6 text-cyan-600 dark:text-cyan-300" />
               </div>
-              <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-teal-700 dark:text-teal-400">
+              <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-cyan-700 dark:text-cyan-300">
                 {calculation.workingDaysPerYear}
               </div>
               <div class="font-medium text-xs sm:text-sm mb-1">Working Days</div>
               <div class="text-xs text-muted-foreground">Per year</div>
             </div>
 
-            <div class="text-center p-3 sm:p-4 rounded-lg border bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800">
+            <div class="text-center p-3 sm:p-4 rounded-lg border bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
               <div class="flex items-center justify-center mb-2 sm:mb-3">
-                <Clock class="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 dark:text-orange-400" />
+                <Clock class="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 dark:text-amber-300" />
               </div>
-              <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-orange-700 dark:text-orange-400">
+              <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-amber-700 dark:text-amber-300">
                 {calculation.totalHoursPerYear - calculation.realBillableHoursPerYear} h
               </div>
               <div class="font-medium text-xs sm:text-sm mb-1">Non-billable Hours</div>
               <div class="text-xs text-muted-foreground">Admin, meetings, training</div>
             </div>
             
-            <div class="text-center p-3 sm:p-4 rounded-lg border bg-sky-50 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800">
+            <div class="text-center p-3 sm:p-4 rounded-lg border bg-violet-50 dark:bg-violet-950/30 border-violet-200 dark:border-violet-800">
               <div class="flex items-center justify-center mb-2 sm:mb-3">
-                <Clock class="w-5 h-5 sm:w-6 sm:h-6 text-sky-600 dark:text-sky-400" />
+                <Clock class="w-5 h-5 sm:w-6 sm:h-6 text-violet-600 dark:text-violet-300" />
               </div>
-              <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-sky-700 dark:text-sky-400">
+              <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-violet-700 dark:text-violet-300">
                 {calculation.realBillableHoursPerYear} h
               </div>
               <div class="font-medium text-xs sm:text-sm mb-1">Realistic Billable</div>
@@ -460,7 +463,7 @@
             <!-- Pro Overlay -->
             <div class="absolute inset-0 flex items-center justify-center bg-background/10 backdrop-blur-[2px] rounded-lg">
               <div class="text-center p-6">
-                <Badge variant="secondary" class="bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-400 border-sky-200 dark:border-sky-800 text-xs">
+                <Badge variant="secondary" class="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-blue-200 dark:border-blue-800 text-xs">
                   <Lock class="w-3 h-3 mr-1" />
                   <span class="hidden xs:inline">Unlock with </span>Pro
                 </Badge>
