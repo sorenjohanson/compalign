@@ -2,46 +2,66 @@
 	import {
 		type CalculatorConfig,
 		defaultConfig,
-		clearSettingsFromStorage
+		clearSettingsFromStorage,
+		validateFuzzyHours,
+		isProUnlocked,
+		unlockPro,
+		lockPro,
+		calculateSalaryBreakdown
 	} from '../salary-calculator.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import Settings from '@lucide/svelte/icons/settings';
+	import Lock from '@lucide/svelte/icons/lock';
+	import Unlock from '@lucide/svelte/icons/unlock';
 
 	interface Props {
 		open: boolean;
 		config: CalculatorConfig;
 		onClose: () => void;
 		onSave: (config: CalculatorConfig) => void;
+		onProStatusChange?: () => void;
 	}
 
-	let { open = $bindable(), config, onClose, onSave }: Props = $props();
+	let { open = $bindable(), config, onClose, onSave, onProStatusChange }: Props = $props();
 
 	let tempConfig = $state({ ...config });
 	let resetConfirmation = $state(false);
+	let isProEnabled = $state(isProUnlocked());
 
 	// Reactive variables for percentage inputs (display as whole numbers)
 	let employerRatePercent = $state(config.employerSocialContributionRate * 100);
-	let utilisationRatePercent = $state(config.utilisationRate * 100);
 	let targetNetMarginPercent = $state(config.targetNetMargin);
+	let overheadPercent = $state(config.overheadAsPercentOfRevenue * 100);
+
+	// Validate fuzzy hours
+	let fuzzyHoursValidation = $derived(validateFuzzyHours(tempConfig));
+	
+	// Calculate utilisation rate from the current config
+	let calculatedUtilisationRate = $derived(() => {
+		// Use sample values for calculation - we just need the utilisation rate
+		const sampleCalculation = calculateSalaryBreakdown(90000, 110, tempConfig);
+		return sampleCalculation.utilisationRate * 100;
+	});
 
 	$effect(() => {
 		if (open) {
 			tempConfig = { ...config };
 			employerRatePercent = config.employerSocialContributionRate * 100;
-			utilisationRatePercent = config.utilisationRate * 100;
 			targetNetMarginPercent = config.targetNetMargin;
+			overheadPercent = config.overheadAsPercentOfRevenue * 100;
 			resetConfirmation = false;
+			isProEnabled = isProUnlocked();
 		}
 	});
 
 	// Update tempConfig when percentage inputs change
 	$effect(() => {
 		tempConfig.employerSocialContributionRate = employerRatePercent / 100;
-		tempConfig.utilisationRate = utilisationRatePercent / 100;
 		tempConfig.targetNetMargin = targetNetMarginPercent;
+		tempConfig.overheadAsPercentOfRevenue = overheadPercent / 100;
 	});
 
 	function handleSave() {
@@ -60,219 +80,176 @@
 			clearSettingsFromStorage();
 			tempConfig = { ...defaultConfig };
 			employerRatePercent = defaultConfig.employerSocialContributionRate * 100;
-			utilisationRatePercent = defaultConfig.utilisationRate * 100;
 			targetNetMarginPercent = defaultConfig.targetNetMargin;
+			overheadPercent = defaultConfig.overheadAsPercentOfRevenue * 100;
 			resetConfirmation = false;
 		}
+	}
+
+	function handleProToggle() {
+		if (isProEnabled) {
+			lockPro();
+		} else {
+			unlockPro();
+		}
+		isProEnabled = !isProEnabled;
+		onProStatusChange?.();
 	}
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Content class="max-h-[90vh] max-w-2xl overflow-y-auto">
+	<Dialog.Content class="max-h-[90vh] max-w-2xl overflow-y-auto w-[95vw] sm:w-full">
 		<Dialog.Header>
 			<Dialog.Title class="flex items-center gap-2">
 				<Settings class="h-5 w-5" />
 				Calculator Settings
 			</Dialog.Title>
 			<Dialog.Description>
-				Configure German employment parameters for accurate calculations
+				Configure employment parameters for accurate calculations
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="space-y-6 py-4">
-			<!-- Social Contributions and Vacation -->
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-				<div class="space-y-2">
-					<label for="employerRate" class="text-sm font-medium">
-						Additional Employer Cost (%)
-					</label>
-					<Input
-						id="employerRate"
-						type="number"
-						bind:value={employerRatePercent}
-						min="15"
-						max="25"
-						step="1"
-						placeholder="20"
-					/>
-					<p class="text-xs text-muted-foreground">
-						Social contributions, insurance, benefits (German standard: 20%)
-					</p>
-				</div>
-
-				<div class="space-y-2">
-					<label for="vacationDays" class="text-sm font-medium"> Vacation Days </label>
-					<Input
-						id="vacationDays"
-						type="number"
-						bind:value={tempConfig.vacationDays}
-						min="20"
-						max="50"
-						step="1"
-						placeholder="30"
-					/>
-					<p class="text-xs text-muted-foreground">German minimum: 24 days</p>
-				</div>
-			</div>
-
-			<!-- Sick Days and Training -->
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-				<div class="space-y-2">
-					<label for="sickDays" class="text-sm font-medium"> Estimated Sick Days </label>
-					<Input
-						id="sickDays"
-						type="number"
-						bind:value={tempConfig.sickDaysEstimate}
-						min="0"
-						max="30"
-						step="1"
-						placeholder="8"
-					/>
-					<p class="text-xs text-muted-foreground">Average: 8-12 days per year</p>
-				</div>
-
-				<div class="space-y-2">
-					<label for="trainingDays" class="text-sm font-medium"> Training/Development Days </label>
-					<Input
-						id="trainingDays"
-						type="number"
-						bind:value={tempConfig.trainingDays}
-						min="0"
-						max="30"
-						step="1"
-						placeholder="10"
-					/>
-					<p class="text-xs text-muted-foreground">Professional development time</p>
-				</div>
-			</div>
-
-			<!-- Public Holidays and Working Schedule -->
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-				<div class="space-y-2">
-					<label for="publicHolidays" class="text-sm font-medium"> Public Holidays </label>
-					<Input
-						id="publicHolidays"
-						type="number"
-						bind:value={tempConfig.publicHolidays}
-						min="9"
-						max="15"
-						step="1"
-						placeholder="11"
-					/>
-					<p class="text-xs text-muted-foreground">Varies by German state (9-13)</p>
-				</div>
-
-				<div class="space-y-2">
-					<label for="workingDaysPerWeek" class="text-sm font-medium">
-						Working Days per Week
-					</label>
-					<Input
-						id="workingDaysPerWeek"
-						type="number"
-						bind:value={tempConfig.workingDaysPerWeek}
-						min="4"
-						max="6"
-						step="1"
-						placeholder="5"
-					/>
-					<p class="text-xs text-muted-foreground">Standard: 5 days</p>
-				</div>
-			</div>
-
-			<!-- Hours per Day -->
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-				<div class="space-y-2">
-					<label for="hoursPerDay" class="text-sm font-medium"> Hours per Working Day </label>
-					<Input
-						id="hoursPerDay"
-						type="number"
-						bind:value={tempConfig.hoursPerWorkingDay}
-						min="6"
-						max="10"
-						step="0.5"
-						placeholder="8"
-					/>
-					<p class="text-xs text-muted-foreground">Standard: 8 hours</p>
-				</div>
-
-				<div class="space-y-2">
-					<label for="utilisationRate" class="text-sm font-medium"> Utilisation Rate (%) </label>
-					<Input
-						id="utilisationRate"
-						type="number"
-						bind:value={utilisationRatePercent}
-						min="40"
-						max="90"
-						step="5"
-						placeholder="65"
-					/>
-					<p class="text-xs text-muted-foreground">
-						Realistic billable hours: 65% is industry average
-					</p>
-				</div>
-			</div>
-
-			<!-- Target Margin Section -->
-			<div class="space-y-2">
-				<label for="targetMargin" class="text-sm font-medium"> Target Net Margin (%) </label>
-				<Input
-					id="targetMargin"
-					type="number"
-					bind:value={targetNetMarginPercent}
-					min="5"
-					max="50"
-					step="1"
-					placeholder="25"
-				/>
-				<p class="text-xs text-muted-foreground">
-					Company's target net profit margin for sustainable operations
-				</p>
-			</div>
-
-			<!-- Fuzzy Costs Section -->
-			<div class="space-y-4">
-				<div class="border-t pt-4">
-					<h3 class="mb-3 text-base font-medium">Non-Billable Work (Hours per Week)</h3>
-					<p class="mb-4 text-xs text-muted-foreground">
-						These activities add business value but aren't directly billable to clients
-					</p>
-				</div>
-
-				<!-- Sales and Business Development -->
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<div class="space-y-2">
-						<label for="salesDemos" class="text-sm font-medium"> Sales Demos & Pre-Sales </label>
-						<Input
-							id="salesDemos"
-							type="number"
-							bind:value={tempConfig.salesDemosHours}
-							min="0"
-							max="20"
-							step="0.5"
-							placeholder="2"
-						/>
-						<p class="text-xs text-muted-foreground">Client demos, technical presentations</p>
+			<!-- Pro Features Section -->
+			<div class="border rounded-lg p-4 bg-gradient-to-r from-sky-50/50 to-blue-50/50 dark:from-sky-950/20 dark:to-blue-950/20 border-sky-200/50 dark:border-sky-800/50">
+				<div class="flex items-center justify-between mb-3">
+					<div class="flex items-center gap-2">
+						{#if isProEnabled}
+							<Unlock class="h-5 w-5 text-sky-600 dark:text-sky-400" />
+							<span class="font-medium text-sky-700 dark:text-sky-400">Pro Features Unlocked</span>
+						{:else}
+							<Lock class="h-5 w-5 text-sky-600 dark:text-sky-400" />
+							<span class="font-medium text-sky-700 dark:text-sky-400">Pro Features</span>
+						{/if}
 					</div>
+					<Button
+						variant={isProEnabled ? "outline" : "default"}
+						size="sm"
+						onclick={handleProToggle}
+						class={isProEnabled 
+							? "border-sky-300 text-sky-700 hover:bg-sky-50 dark:border-sky-700 dark:text-sky-400" 
+							: "bg-sky-600 hover:bg-sky-700 text-white"
+						}
+					>
+						{#if isProEnabled}
+							<Lock class="w-4 h-4 mr-2" />
+							Lock Pro
+						{:else}
+							<Unlock class="w-4 h-4 mr-2" />
+							Unlock Pro
+						{/if}
+					</Button>
+				</div>
+				<div class="text-sm text-muted-foreground">
+					{#if isProEnabled}
+						<p>✓ Industry benchmark comparisons</p>
+						<p>✓ Employee vs Freelancer mode switching</p>
+						<p>✓ Advanced analytics and insights</p>
+					{:else}
+						<p>• Industry benchmark comparisons</p>
+						<p>• Employee vs Freelancer mode switching</p>
+						<p>• Advanced analytics and insights</p>
+					{/if}
+				</div>
+			</div>
 
+			<!-- Work Schedule -->
+			<div class="space-y-4">
+				<h3 class="text-base font-medium border-b pb-2">Work Schedule</h3>
+				<div class="grid grid-cols-2 gap-4">
 					<div class="space-y-2">
-						<label for="businessDev" class="text-sm font-medium"> Business Development </label>
+						<label for="workingDaysPerWeek" class="text-sm font-medium">Working Days / Week</label>
 						<Input
-							id="businessDev"
+							id="workingDaysPerWeek"
 							type="number"
-							bind:value={tempConfig.businessDevelopmentHours}
-							min="0"
+							bind:value={tempConfig.workingDaysPerWeek}
+							min="4"
+							max="6"
+							step="1"
+						/>
+						<p class="text-xs text-muted-foreground">Standard: 5 days</p>
+					</div>
+					<div class="space-y-2">
+						<label for="hoursPerDay" class="text-sm font-medium">Hours / Day</label>
+						<Input
+							id="hoursPerDay"
+							type="number"
+							bind:value={tempConfig.hoursPerWorkingDay}
+							min="6"
 							max="10"
 							step="0.5"
-							placeholder="1"
 						/>
-						<p class="text-xs text-muted-foreground">Networking, proposals, marketing</p>
+						<p class="text-xs text-muted-foreground">Standard: 8 hours</p>
 					</div>
 				</div>
+			</div>
 
-				<!-- Internal Operations -->
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+			<!-- Time Off -->
+			<div class="space-y-4">
+				<h3 class="text-base font-medium border-b pb-2">Time Off (Days per Year)</h3>
+				<div class="grid grid-cols-2 gap-4">
 					<div class="space-y-2">
-						<label for="internalMeetings" class="text-sm font-medium"> Internal Meetings </label>
+						<label for="vacationDays" class="text-sm font-medium">Vacation</label>
+						<Input
+							id="vacationDays"
+							type="number"
+							bind:value={tempConfig.vacationDays}
+							min="20"
+							max="50"
+							step="1"
+						/>
+						<p class="text-xs text-muted-foreground">German minimum: 24 days</p>
+					</div>
+					<div class="space-y-2">
+						<label for="sickDays" class="text-sm font-medium">Sick Days</label>
+						<Input
+							id="sickDays"
+							type="number"
+							bind:value={tempConfig.sickDaysEstimate}
+							min="0"
+							max="30"
+							step="1"
+						/>
+						<p class="text-xs text-muted-foreground">Average: 8-12 days per year</p>
+					</div>
+					<div class="space-y-2">
+						<label for="trainingDays" class="text-sm font-medium">Training</label>
+						<Input
+							id="trainingDays"
+							type="number"
+							bind:value={tempConfig.trainingDays}
+							min="0"
+							max="30"
+							step="1"
+						/>
+						<p class="text-xs text-muted-foreground">Professional development time</p>
+					</div>
+					<div class="space-y-2">
+						<label for="publicHolidays" class="text-sm font-medium">Holidays</label>
+						<Input
+							id="publicHolidays"
+							type="number"
+							bind:value={tempConfig.publicHolidays}
+							min="9"
+							max="15"
+							step="1"
+						/>
+						<p class="text-xs text-muted-foreground">Varies by German state (9-13)</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Non-Billable Work -->
+			<div class="space-y-4">
+				<div class="flex items-center justify-between border-b pb-2">
+					<h3 class="text-base font-medium">Non-Billable Work (Hours/Week)</h3>
+					<span class="text-sm text-muted-foreground">
+						Utilisation: {calculatedUtilisationRate().toFixed(0)}%
+					</span>
+				</div>
+				<div class="grid grid-cols-2 gap-4">
+					<div class="space-y-2">
+						<label for="internalMeetings" class="text-sm font-medium">Meetings</label>
 						<Input
 							id="internalMeetings"
 							type="number"
@@ -280,13 +257,11 @@
 							min="0"
 							max="20"
 							step="0.5"
-							placeholder="4"
 						/>
 						<p class="text-xs text-muted-foreground">Team meetings, planning, standups</p>
 					</div>
-
 					<div class="space-y-2">
-						<label for="adminTasks" class="text-sm font-medium"> Admin Tasks </label>
+						<label for="adminTasks" class="text-sm font-medium">Admin</label>
 						<Input
 							id="adminTasks"
 							type="number"
@@ -294,19 +269,87 @@
 							min="0"
 							max="10"
 							step="0.5"
-							placeholder="2"
 						/>
 						<p class="text-xs text-muted-foreground">Timesheets, expenses, reporting</p>
+					</div>
+					<div class="space-y-2">
+						<label for="salesDemos" class="text-sm font-medium">Sales</label>
+						<Input
+							id="salesDemos"
+							type="number"
+							bind:value={tempConfig.salesDemosHours}
+							min="0"
+							max="20"
+							step="0.5"
+						/>
+						<p class="text-xs text-muted-foreground">Client demos, technical presentations</p>
+					</div>
+					<div class="space-y-2">
+						<label for="businessDev" class="text-sm font-medium">Business Dev</label>
+						<Input
+							id="businessDev"
+							type="number"
+							bind:value={tempConfig.businessDevelopmentHours}
+							min="0"
+							max="10"
+							step="0.5"
+						/>
+						<p class="text-xs text-muted-foreground">Networking, proposals, marketing</p>
 					</div>
 				</div>
 			</div>
 
-			<!-- Summary Card -->
+			<!-- Financial Settings -->
+			<div class="space-y-4">
+				<h3 class="text-base font-medium border-b pb-2">Financial Settings</h3>
+				<div class="grid grid-cols-2 gap-4">
+					<div class="space-y-2">
+						<label for="employerRate" class="text-sm font-medium">Employer Costs (%)</label>
+						<Input
+							id="employerRate"
+							type="number"
+							bind:value={employerRatePercent}
+							min="15"
+							max="25"
+							step="1"
+						/>
+						<p class="text-xs text-muted-foreground">Social contributions, insurance, benefits (German standard: 20%)</p>
+					</div>
+					<div class="space-y-2">
+						<label for="overheadPercent" class="text-sm font-medium">Overhead (%)</label>
+						<Input
+							id="overheadPercent"
+							type="number"
+							bind:value={overheadPercent}
+							min="5"
+							max="40"
+							step="1"
+						/>
+						<p class="text-xs text-muted-foreground">Office, admin, tools, marketing costs (15% is typical)</p>
+					</div>
+				</div>
+				<div class="grid grid-cols-2 gap-4">
+					<div class="space-y-2">
+						<label for="targetMargin" class="text-sm font-medium">Target Net Margin (%)</label>
+						<Input
+							id="targetMargin"
+							type="number"
+							bind:value={targetNetMarginPercent}
+							min="5"
+							max="50"
+							step="1"
+						/>
+						<p class="text-xs text-muted-foreground">Company's target net margin percentage for sustainable operations</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Configuration Summary -->
 			<Card.Root>
 				<Card.Header>
 					<Card.Title class="text-base">Configuration Summary</Card.Title>
 				</Card.Header>
-				<Card.Content class="space-y-3 text-sm">
+				<Card.Content class="space-y-2 text-sm">
 					<!-- Time Breakdown -->
 					<div class="space-y-2">
 						<div class="flex justify-between">
@@ -329,28 +372,28 @@
 							</span>
 						</div>
 						<div class="flex justify-between">
-							<span class="text-muted-foreground">Utilisation rate:</span>
+							<span class="text-muted-foreground">Calculated utilisation rate:</span>
 							<span class="font-medium">
-								{utilisationRatePercent.toFixed(0)}%
+								{calculatedUtilisationRate().toFixed(0)}%
 							</span>
 						</div>
 					</div>
 
-					<!-- Fuzzy Costs -->
+					<!-- Non-Billable Hours -->
 					<div class="space-y-2 border-t pt-2">
 						<div class="text-xs font-medium">Weekly Non-Billable Hours:</div>
-						<div class="grid grid-cols-2 gap-2 text-xs">
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
 							<div class="flex justify-between">
-								<span class="text-muted-foreground">Sales demos:</span>
-								<span>{tempConfig.salesDemosHours}h</span>
-							</div>
-							<div class="flex justify-between">
-								<span class="text-muted-foreground">Internal meetings:</span>
+								<span class="text-muted-foreground">Meetings:</span>
 								<span>{tempConfig.internalMeetingsHours}h</span>
 							</div>
 							<div class="flex justify-between">
-								<span class="text-muted-foreground">Admin tasks:</span>
+								<span class="text-muted-foreground">Admin:</span>
 								<span>{tempConfig.adminTasksHours}h</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-muted-foreground">Sales:</span>
+								<span>{tempConfig.salesDemosHours}h</span>
 							</div>
 							<div class="flex justify-between">
 								<span class="text-muted-foreground">Business dev:</span>
@@ -358,17 +401,19 @@
 							</div>
 						</div>
 						<div class="flex justify-between border-t pt-1">
-							<span class="font-medium text-muted-foreground">Total fuzzy hours/week:</span>
-							<span class="font-medium">
-								{tempConfig.salesDemosHours +
-									tempConfig.internalMeetingsHours +
-									tempConfig.adminTasksHours +
-									tempConfig.businessDevelopmentHours}h
+							<span class="font-medium text-muted-foreground">Total non-billable hours/week:</span>
+							<span class="font-medium {!fuzzyHoursValidation.isValid ? 'text-red-600 dark:text-red-400' : ''}">
+								{fuzzyHoursValidation.totalFuzzyHours}h / {fuzzyHoursValidation.maxWeeklyHours}h
 							</span>
 						</div>
+						{#if !fuzzyHoursValidation.isValid}
+							<div class="text-xs text-red-600 dark:text-red-400 mt-1">
+								⚠️ Exceeds weekly capacity by {fuzzyHoursValidation.exceededBy.toFixed(1)}h. Hours will be scaled down proportionally.
+							</div>
+						{/if}
 					</div>
 
-					<!-- Employer Contribution -->
+					<!-- Financial Summary -->
 					<div class="border-t pt-2">
 						<div class="flex justify-between">
 							<span class="text-muted-foreground">Additional employer cost:</span>
@@ -376,7 +421,13 @@
 								{employerRatePercent.toFixed(1)}%
 							</span>
 						</div>
-						<div class="mt-2 flex justify-between">
+						<div class="flex justify-between">
+							<span class="text-muted-foreground">Overhead costs:</span>
+							<span class="font-medium">
+								{overheadPercent.toFixed(1)}%
+							</span>
+						</div>
+						<div class="flex justify-between">
 							<span class="text-muted-foreground">Target net margin:</span>
 							<span class="font-medium">
 								{targetNetMarginPercent}%
@@ -387,18 +438,18 @@
 			</Card.Root>
 		</div>
 
-		<Dialog.Footer class="flex justify-between">
+		<Dialog.Footer class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0">
 			<Button
 				variant="ghost"
 				onclick={handleResetToDefaults}
-				class={resetConfirmation ? 'text-destructive bg-destructive/10 hover:bg-destructive/20 hover:text-destructive' : 'text-destructive hover:text-destructive'}
+				class={`w-full sm:w-auto ${resetConfirmation ? 'text-destructive bg-destructive/10 hover:bg-destructive/20 hover:text-destructive' : 'text-destructive hover:text-destructive'}`}
 			>
 				{resetConfirmation ? 'Are you sure?' : 'Reset to Defaults'}
 			</Button>
 
-			<div class="flex gap-3">
-				<Button variant="outline" onclick={onClose}>Cancel</Button>
-				<Button onclick={handleSave}>Save Settings</Button>
+			<div class="flex gap-3 w-full sm:w-auto">
+				<Button variant="outline" onclick={onClose} class="flex-1 sm:flex-none">Cancel</Button>
+				<Button onclick={handleSave} class="flex-1 sm:flex-none">Save Settings</Button>
 			</div>
 		</Dialog.Footer>
 	</Dialog.Content>

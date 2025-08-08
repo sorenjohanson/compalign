@@ -8,10 +8,12 @@
     formatPercentage,
     defaultConfig,
     getMarginPosition,
+    getMarginStatus,
     loadSettingsFromStorage,
     saveSettingsToStorage,
     loadInputValuesFromStorage,
     saveInputValuesToStorage,
+    isProUnlocked,
     type SalaryCalculation,
     type CalculatorConfig
   } from '$lib/salary-calculator';
@@ -21,6 +23,7 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
+  import { Badge } from '$lib/components/ui/badge/index.js';
   import Settings from '@lucide/svelte/icons/settings';
   import Calculator from '@lucide/svelte/icons/calculator';
   import TrendingUp from '@lucide/svelte/icons/trending-up';
@@ -34,6 +37,7 @@
   import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
   import Target from '@lucide/svelte/icons/target';
   import Calendar from '@lucide/svelte/icons/calendar';
+  import Lock from '@lucide/svelte/icons/lock';
 	import DarkModeToggle from '$lib/components/DarkModeToggle.svelte';
   
   // Load persisted values or use defaults
@@ -43,6 +47,7 @@
   let config = $state(loadSettingsFromStorage());
   let showSettings = $state(false);
   let isFreelancerMode = $state(false);
+  let isProEnabled = $state(isProUnlocked());
 
   // Save input values to localStorage when they change
   $effect(() => {
@@ -53,6 +58,7 @@
   let strategicInsights = $derived(generateStrategicInsights(calculation, config));
   let marginComparison = $derived(generateMarginComparison(calculation));
   let marginPosition = $derived(getMarginPosition(calculation.netMarginPercentage));
+  let marginStatus = $derived(getMarginStatus(calculation.netMarginPercentage, config.targetNetMargin));
 
   function handleSettingsClose() {
     showSettings = false;
@@ -62,21 +68,25 @@
     config = { ...newConfig };
     saveSettingsToStorage(config);
   }
+
+  function handleProStatusChange() {
+    isProEnabled = isProUnlocked();
+  }
 </script>
 
-<div class="min-h-screen bg-gray-100 dark:from-slate-900 dark:to-slate-800 dark:bg-gradient-to-br py-8 px-4">
+<div class="min-h-screen bg-gray-100 dark:from-slate-900 dark:to-slate-800 dark:bg-gradient-to-br py-4 sm:py-8 px-4">
   <div class="max-w-6xl mx-auto">
     <!-- Header -->
-    <div class="text-center mb-8">
-      <div class="flex justify-between items-start mb-4">
-        <div></div>
-        <div class="text-center flex-1">
-          <div class="flex items-center justify-center gap-3 mb-4">
-            <Calculator class="w-8 h-8 text-primary" />
-            <h1 class="text-4xl font-bold">Salary & Profitability Calculator</h1>
+    <div class="text-center mb-6 sm:mb-8">
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+        <div class="hidden sm:block flex-1"></div>
+        <div class="text-center flex items-center">
+          <div class="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-0">
+            <Calculator class="w-12 h-12 text-primary hidden md:block" />
+            <h1 class="text-3xl font-bold">Rate Transparency Calculator</h1>
           </div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-1 justify-end">
           <DarkModeToggle />
           <Button
             variant="outline"
@@ -85,27 +95,35 @@
             class="flex items-center gap-2"
           >
             <Settings class="w-4 h-4" />
-            Settings
+            <span class="hidden sm:inline">Settings</span>
           </Button>
         </div>
       </div>
     </div>
 
     <!-- Input Controls -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
       <Card.Root>
         <Card.Header>
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <Card.Title class="flex items-center gap-2">
                 <Euro class="w-5 h-5 text-primary" />
                 Annual Gross Salary
               </Card.Title>
             </div>
-            <div class="flex items-center space-x-2">
-              <span class="text-sm text-muted-foreground">Employee</span>
-              <Switch bind:checked={isFreelancerMode} />
-              <span class="text-sm text-muted-foreground">Freelancer</span>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:space-x-3">
+              <div class="flex items-center space-x-2">
+                <span class="text-xs sm:text-sm text-muted-foreground/60">Employee</span>
+                <Switch bind:checked={isFreelancerMode} disabled={!isProEnabled} class={!isProEnabled ? "opacity-50" : ""} />
+                <span class="text-xs sm:text-sm text-muted-foreground/60">Freelancer</span>
+              </div>
+              {#if !isProEnabled}
+                <Badge variant="secondary" class="bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-400 border-sky-200 dark:border-sky-800 text-xs">
+                  <Lock class="w-3 h-3 mr-1" />
+                  <span class="hidden xs:inline">Unlock with </span>Pro
+                </Badge>
+              {/if}
             </div>
           </div>
         </Card.Header>
@@ -150,16 +168,16 @@
     </div>
 
     <!-- Key Metrics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
       <Card.Root>
-        <Card.Content class="p-6">
-          <div class="flex items-center space-x-4">
-            <div class="p-2 bg-teal-100 dark:bg-teal-900/50 rounded-lg">
-              <TrendingUp class="w-6 h-6 text-teal-700 dark:text-teal-400" />
+        <Card.Content class="p-4 sm:p-6">
+          <div class="flex items-center space-x-3 sm:space-x-4">
+            <div class="p-2 bg-teal-100 dark:bg-teal-900/50 rounded-lg flex-shrink-0">
+              <TrendingUp class="w-5 h-5 sm:w-6 sm:h-6 text-teal-700 dark:text-teal-400" />
             </div>
-            <div>
-              <div class="text-2xl font-bold text-teal-700 dark:text-teal-400">{formatCurrency(calculation.annualRevenue)}</div>
-              <div class="text-sm font-medium">Annual Revenue</div>
+            <div class="min-w-0">
+              <div class="text-lg sm:text-2xl font-bold text-teal-700 dark:text-teal-400 truncate">{formatCurrency(calculation.annualRevenue)}</div>
+              <div class="text-xs sm:text-sm font-medium">Annual Revenue</div>
               <div class="text-xs text-muted-foreground mt-1">Generated for company</div>
             </div>
           </div>
@@ -167,22 +185,24 @@
       </Card.Root>
 
       <Card.Root>
-        <Card.Content class="p-6">
-          <div class="flex items-center space-x-4">
-            <div class="p-2 {calculation.netMarginPercentage >= config.targetNetMargin ? 'bg-sky-100 dark:bg-sky-900/50' : 'bg-orange-100 dark:bg-orange-900/50'} rounded-lg">
-              {#if calculation.netMarginPercentage >= config.targetNetMargin}
-                <ArrowUpRight class="w-6 h-6 text-sky-700 dark:text-sky-400" />
+        <Card.Content class="p-4 sm:p-6">
+          <div class="flex items-center space-x-3 sm:space-x-4">
+            <div class="p-2 {marginStatus === 'above' ? 'bg-sky-100 dark:bg-sky-900/50' : marginStatus === 'exact' ? 'bg-gray-100 dark:bg-gray-900/50' : 'bg-orange-100 dark:bg-orange-900/50'} rounded-lg flex-shrink-0">
+              {#if marginStatus === 'above'}
+                <ArrowUpRight class="w-5 h-5 sm:w-6 sm:h-6 text-sky-700 dark:text-sky-400" />
+              {:else if marginStatus === 'exact'}
+                <ArrowRight class="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 dark:text-gray-400" />
               {:else}
-                <ArrowDownRight class="w-6 h-6 text-orange-700 dark:text-orange-400" />
+                <ArrowDownRight class="w-5 h-5 sm:w-6 sm:h-6 text-orange-700 dark:text-orange-400" />
               {/if}
             </div>
-            <div>
-              <div class="text-2xl font-bold {calculation.netMarginPercentage >= config.targetNetMargin ? 'text-sky-700 dark:text-sky-400' : 'text-orange-700 dark:text-orange-400'}">
+            <div class="min-w-0">
+              <div class="text-lg sm:text-2xl font-bold {marginStatus === 'above' ? 'text-sky-700 dark:text-sky-400' : marginStatus === 'exact' ? 'text-gray-700 dark:text-gray-400' : 'text-orange-700 dark:text-orange-400'} truncate">
                 {formatCurrency(calculation.netMargin)}
               </div>
-              <div class="text-sm font-medium">Company Net Profit</div>
+              <div class="text-xs sm:text-sm font-medium">Company Net Profit</div>
               <div class="text-xs text-muted-foreground mt-1">
-                {formatPercentage(calculation.netMarginPercentage)} vs {formatPercentage(config.targetNetMargin)} target margin
+                {formatPercentage(calculation.netMarginPercentage)} vs {formatPercentage(config.targetNetMargin)} target
               </div>
             </div>
           </div>
@@ -190,14 +210,14 @@
       </Card.Root>
 
       <Card.Root>
-        <Card.Content class="p-6">
-          <div class="flex items-center space-x-4">
-            <div class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
-              <Users class="w-6 h-6 text-indigo-700 dark:text-indigo-400" />
+        <Card.Content class="p-4 sm:p-6">
+          <div class="flex items-center space-x-3 sm:space-x-4">
+            <div class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex-shrink-0">
+              <Users class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-700 dark:text-indigo-400" />
             </div>
-            <div>
-              <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{formatCurrency(calculation.employeeHourlyRate)}</div>
-              <div class="text-sm font-medium">Employee Hourly Rate</div>
+            <div class="min-w-0">
+              <div class="text-lg sm:text-2xl font-bold text-indigo-700 dark:text-indigo-400 truncate">{formatCurrency(calculation.employeeHourlyRate)}</div>
+              <div class="text-xs sm:text-sm font-medium">Employee Hourly Rate</div>
               <div class="text-xs text-muted-foreground mt-1">Based on total hours</div>
             </div>
           </div>
@@ -205,14 +225,14 @@
       </Card.Root>
 
       <Card.Root>
-        <Card.Content class="p-6">
-          <div class="flex items-center space-x-4">
-            <div class="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg">
-              <Clock class="w-6 h-6 text-amber-700 dark:text-amber-400" />
+        <Card.Content class="p-4 sm:p-6">
+          <div class="flex items-center space-x-3 sm:space-x-4">
+            <div class="p-2 bg-sky-100 dark:bg-sky-900/50 rounded-lg flex-shrink-0">
+              <Clock class="w-5 h-5 sm:w-6 sm:h-6 text-sky-700 dark:text-sky-400" />
             </div>
-            <div>
-              <div class="text-2xl font-bold text-amber-700 dark:text-amber-400">{calculation.realBillableHoursPerYear}</div>
-              <div class="text-sm font-medium">Billable Hours</div>
+            <div class="min-w-0">
+              <div class="text-lg sm:text-2xl font-bold text-sky-700 dark:text-sky-400">{calculation.realBillableHoursPerYear} h</div>
+              <div class="text-xs sm:text-sm font-medium">Billable Hours</div>
               <div class="text-xs text-muted-foreground mt-1">{formatPercentage(calculation.utilisationRate * 100)} utilisation</div>
             </div>
           </div>
@@ -227,79 +247,122 @@
           <TrendingUp class="w-5 h-5 text-primary" />
           Financial Overview
         </Card.Title>
-        <Card.Description>Complete breakdown of costs, revenue, and profitability</Card.Description>
+        <Card.Description>Complete breakdown of revenue, costs and profitability</Card.Description>
       </Card.Header>
       <Card.Content>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- Costs Column -->
-          <div class="space-y-4">
-            <h4 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground border-b pb-2">Costs</h4>
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="text-sm">Gross Salary</span>
-                <span class="font-semibold">{formatCurrency(calculation.grossSalaryAnnual)}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-sm">Employer Contributions ({formatPercentage(config.employerSocialContributionRate * 100)})</span>
-                <span class="font-semibold text-amber-700 dark:text-amber-400">+{formatCurrency(calculation.employerSocialContributions)}</span>
-              </div>
-              <div class="flex justify-between items-center pt-2 border-t">
-                <span class="font-medium">Total Employment Cost</span>
-                <span class="font-bold text-lg">{formatCurrency(calculation.totalEmployerCosts)}</span>
-              </div>
-              <div class="flex justify-between items-center text-sm">
-                <span class="text-muted-foreground">Per Hour Cost</span>
-                <span class="font-medium">{formatCurrency(calculation.employerCostHourlyRate)}</span>
-              </div>
-            </div>
-          </div>
-
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:h-80">
           <!-- Revenue Column -->
-          <div class="space-y-4">
-            <h4 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground border-b pb-2">Revenue</h4>
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="text-sm">Billable Hours</span>
-                <span class="font-semibold">{calculation.realBillableHoursPerYear}h</span>
+          <div class="bg-teal-50/50 dark:bg-teal-950/20 rounded-lg p-4 border border-teal-200/50 dark:border-teal-800/50 flex flex-col h-full">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="p-1.5 bg-teal-100 dark:bg-teal-900/50 rounded">
+                <TrendingUp class="w-4 h-4 text-teal-600 dark:text-teal-400" />
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-sm">Hourly Rate</span>
-                <span class="font-semibold">{formatCurrency(calculation.customerHourlyRate)}</span>
+              <h4 class="font-semibold text-sm uppercase tracking-wide text-teal-700 dark:text-teal-400">Revenue</h4>
+            </div>
+            <div class="space-y-3 flex-1 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center py-1">
+                  <span class="text-sm text-gray-600 dark:text-gray-300">Billable Hours</span>
+                <span class="font-semibold text-gray-900 dark:text-gray-100">{calculation.realBillableHoursPerYear} h</span>
               </div>
-              <div class="flex justify-between items-center pt-2 border-t">
-                <span class="font-medium">Total Annual Revenue</span>
-                <span class="font-bold text-lg text-sky-700 dark:text-sky-400">{formatCurrency(calculation.annualRevenue)}</span>
+              <div class="flex justify-between items-center py-1">
+                  <span class="text-sm text-gray-600 dark:text-gray-300">Hourly Rate</span>
+                  <span class="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(calculation.customerHourlyRate)}</span>
+                </div>
               </div>
-              <div class="flex justify-between items-center text-sm">
-                <span class="text-muted-foreground">Non-billable Time Cost</span>
-                <span class="font-medium text-orange-700 dark:text-orange-400">{formatCurrency(calculation.nonBillableTimeValue)}</span>
+              <div class="space-y-3">
+                <div class="border-t border-teal-200 dark:border-teal-700 pt-3">
+                  <div class="flex justify-between items-center">
+                    <span class="font-medium text-gray-900 dark:text-gray-100">Total Annual Revenue</span>
+                    <span class="font-bold text-lg text-teal-700 dark:text-teal-400">{formatCurrency(calculation.annualRevenue)}</span>
+                  </div>
+                </div>
+                <div class="bg-orange-50/50 dark:bg-orange-950/20 rounded px-3 py-2 border border-orange-200/50 dark:border-orange-800/50">
+                  <div class="flex justify-between items-center text-sm">
+                    <span class="text-orange-700 dark:text-orange-400">Non-billable Time Value</span>
+                    <span class="font-medium text-orange-700 dark:text-orange-400">{formatCurrency(calculation.nonBillableTimeValue)}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Margins Column -->
-          <div class="space-y-4">
-            <h4 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground border-b pb-2">Profitability</h4>
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="text-sm">Gross Margin</span>
-                <span class="font-semibold">{formatCurrency(calculation.grossMargin)}</span>
+          <!-- Costs Column -->
+          <div class="bg-red-50/50 dark:bg-red-950/20 rounded-lg p-4 border border-red-200/50 dark:border-red-800/50 flex flex-col h-full">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="p-1.5 bg-red-100 dark:bg-red-900/50 rounded">
+                <Euro class="w-4 h-4 text-red-600 dark:text-red-400" />
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-sm">Gross Margin %</span>
-                <span class="font-semibold">{formatPercentage(calculation.grossMarginPercentage)}</span>
+              <h4 class="font-semibold text-sm uppercase tracking-wide text-red-700 dark:text-red-400">Costs</h4>
+            </div>
+            <div class="space-y-3 flex-1 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center py-1">
+                  <span class="text-sm text-gray-600 dark:text-gray-300">Gross Salary</span>
+                  <span class="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(calculation.grossSalaryAnnual)}</span>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                  <span class="text-sm text-gray-600 dark:text-gray-300">Employer Costs ({formatPercentage(config.employerSocialContributionRate * 100)})</span>
+                  <span class="font-semibold text-amber-700 dark:text-amber-400">+{formatCurrency(calculation.employerSocialContributions)}</span>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                  <span class="text-sm text-gray-600 dark:text-gray-300">Overhead ({formatPercentage(config.overheadAsPercentOfRevenue * 100)})</span>
+                  <span class="font-semibold text-amber-700 dark:text-amber-400">+{formatCurrency(calculation.overheadCosts)}</span>
+                </div>
               </div>
-              <div class="flex justify-between items-center pt-2 border-t">
-                <span class="font-medium">Net Margin</span>
-                <span class="font-bold text-lg {calculation.netMarginPercentage >= config.targetNetMargin ? 'text-blue-700 dark:text-blue-400' : 'text-red-700 dark:text-red-400'}">{formatCurrency(calculation.netMargin)}</span>
+              <div class="space-y-3">
+                <div class="border-t border-red-200 dark:border-red-700 pt-3">
+                  <div class="flex justify-between items-center">
+                    <span class="font-medium text-gray-900 dark:text-gray-100">Total Costs</span>
+                    <span class="font-bold text-lg text-red-700 dark:text-red-400">{formatCurrency(calculation.totalEmployerCosts + calculation.overheadCosts)}</span>
+                  </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-800/50 rounded px-3 py-2 border border-gray-200 dark:border-gray-700">
+                  <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-600 dark:text-gray-400">Per Hour Cost</span>
+                    <span class="font-medium text-gray-700 dark:text-gray-300">{formatCurrency((calculation.totalEmployerCosts + calculation.overheadCosts) / calculation.totalHoursPerYear)}</span>
+                  </div>
+                </div>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-sm">Net Margin %</span>
-                <span class="font-bold {calculation.netMarginPercentage >= config.targetNetMargin ? 'text-blue-700 dark:text-blue-400' : 'text-red-700 dark:text-red-400'}">{formatPercentage(calculation.netMarginPercentage)}</span>
+            </div>
+          </div>
+
+          <!-- Profitability Column -->
+          <div class="bg-sky-50/50 dark:bg-sky-950/20 rounded-lg p-4 border border-sky-200/50 dark:border-sky-800/50 flex flex-col h-full">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="p-1.5 bg-sky-100 dark:bg-sky-900/50 rounded">
+                <Target class="w-4 h-4 text-sky-600 dark:text-sky-400" />
               </div>
-              <div class="flex justify-between items-center text-sm pt-1 border-t border-dashed">
-                <span class="text-muted-foreground">Target Margin</span>
-                <span class="font-medium text-muted-foreground">{formatPercentage(config.targetNetMargin)}</span>
+              <h4 class="font-semibold text-sm uppercase tracking-wide text-sky-700 dark:text-sky-400">Profitability</h4>
+            </div>
+            <div class="space-y-3 flex-1 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center py-1">
+                  <span class="text-sm text-gray-600 dark:text-gray-300">Gross Profit</span>
+                  <span class="font-semibold text-sky-700 dark:text-sky-400">{formatCurrency(calculation.grossMargin)}</span>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                  <span class="text-sm text-gray-600 dark:text-gray-300">Gross Margin %</span>
+                  <span class="font-semibold text-sky-700 dark:text-sky-400">{formatPercentage(calculation.grossMarginPercentage)}</span>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                  <span class="text-sm text-gray-600 dark:text-gray-300">Net Margin %</span>
+                  <span class="font-bold {calculation.netMargin >= 0 ? 'text-sky-700 dark:text-sky-400' : 'text-red-700 dark:text-red-400'}">{formatPercentage(calculation.netMarginPercentage)}</span>
+                </div>
+              </div>
+              <div class="space-y-3">
+                <div class="border-t border-sky-200 dark:border-sky-700 pt-3">
+                  <div class="flex justify-between items-center">
+                    <span class="font-medium text-gray-900 dark:text-gray-100">Net Profit</span>
+                    <span class="font-bold text-lg {calculation.netMargin >= 0 ? 'text-sky-700 dark:text-sky-400' : 'text-red-700 dark:text-red-400'}">{formatCurrency(calculation.netMargin)}</span>
+                  </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-800/50 rounded px-3 py-2 border border-gray-200 dark:border-gray-700">
+                  <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-600 dark:text-gray-400">Target Margin</span>
+                    <span class="font-medium text-gray-700 dark:text-gray-300">{formatPercentage(config.targetNetMargin)}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -318,58 +381,58 @@
           <Card.Description>Performance indicators, efficiency metrics, and working time breakdown</Card.Description>
         </Card.Header>
         <Card.Content>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {#each strategicInsights as insight}
-              <div class="text-center p-4 rounded-lg border {insight.impact === 'positive' ? 'bg-sky-50 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800' : insight.impact === 'negative' ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : 'bg-gray-50 dark:bg-gray-950/30 border-gray-200 dark:border-gray-800'}">
-                <div class="flex items-center justify-center mb-3">
+              <div class="text-center p-3 sm:p-4 rounded-lg border {insight.impact === 'positive' ? 'bg-sky-50 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800' : insight.impact === 'negative' ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : 'bg-gray-50 dark:bg-gray-950/30 border-gray-200 dark:border-gray-800'}">
+                <div class="flex items-center justify-center mb-2 sm:mb-3">
                   {#if insight.impact === 'positive'}
-                    <ArrowUpRight class="w-6 h-6 text-sky-600 dark:text-sky-400" />
+                    <ArrowUpRight class="w-5 h-5 sm:w-6 sm:h-6 text-sky-600 dark:text-sky-400" />
                   {:else if insight.impact === 'negative'}
-                    <ArrowDownRight class="w-6 h-6 text-red-600 dark:text-red-400" />
+                    <ArrowDownRight class="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400" />
                   {:else}
-                    <ArrowRight class="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                    <ArrowRight class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 dark:text-gray-400" />
                   {/if}
                 </div>
-                <div class="text-2xl font-bold mb-2 {insight.impact === 'positive' ? 'text-sky-700 dark:text-sky-400' : insight.impact === 'negative' ? 'text-red-700 dark:text-red-400' : 'text-gray-700 dark:text-gray-400'}">
+                <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 {insight.impact === 'positive' ? 'text-sky-700 dark:text-sky-400' : insight.impact === 'negative' ? 'text-red-700 dark:text-red-400' : 'text-gray-700 dark:text-gray-400'}">
                   {insight.value}
                 </div>
-                <div class="font-medium text-sm mb-1">{insight.category}</div>
+                <div class="font-medium text-xs sm:text-sm mb-1">{insight.category}</div>
                 <div class="text-xs text-muted-foreground">{insight.description}</div>
               </div>
             {/each}
             
             <!-- Working Time Analysis Cards -->
-            <div class="text-center p-4 rounded-lg border bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800">
-              <div class="flex items-center justify-center mb-3">
-                <Calendar class="w-6 h-6 text-teal-600 dark:text-teal-400" />
+            <div class="text-center p-3 sm:p-4 rounded-lg border bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800">
+              <div class="flex items-center justify-center mb-2 sm:mb-3">
+                <Calendar class="w-5 h-5 sm:w-6 sm:h-6 text-teal-600 dark:text-teal-400" />
               </div>
-              <div class="text-2xl font-bold mb-2 text-teal-700 dark:text-teal-400">
+              <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-teal-700 dark:text-teal-400">
                 {calculation.workingDaysPerYear}
               </div>
-              <div class="font-medium text-sm mb-1">Working Days</div>
+              <div class="font-medium text-xs sm:text-sm mb-1">Working Days</div>
               <div class="text-xs text-muted-foreground">Per year</div>
             </div>
-            
-            <div class="text-center p-4 rounded-lg border bg-sky-50 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800">
-              <div class="flex items-center justify-center mb-3">
-                <Clock class="w-6 h-6 text-sky-600 dark:text-sky-400" />
+
+            <div class="text-center p-3 sm:p-4 rounded-lg border bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800">
+              <div class="flex items-center justify-center mb-2 sm:mb-3">
+                <Clock class="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 dark:text-orange-400" />
               </div>
-              <div class="text-2xl font-bold mb-2 text-sky-700 dark:text-sky-400">
-                {calculation.realBillableHoursPerYear}
+              <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-orange-700 dark:text-orange-400">
+                {calculation.totalHoursPerYear - calculation.realBillableHoursPerYear} h
               </div>
-              <div class="font-medium text-sm mb-1">Realistic Billable</div>
-              <div class="text-xs text-muted-foreground">{calculation.billableHoursPerYear}h theoretical</div>
+              <div class="font-medium text-xs sm:text-sm mb-1">Non-billable Hours</div>
+              <div class="text-xs text-muted-foreground">Admin, meetings, training</div>
             </div>
             
-            <div class="text-center p-4 rounded-lg border bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800">
-              <div class="flex items-center justify-center mb-3">
-                <Clock class="w-6 h-6 text-orange-600 dark:text-orange-400" />
+            <div class="text-center p-3 sm:p-4 rounded-lg border bg-sky-50 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800">
+              <div class="flex items-center justify-center mb-2 sm:mb-3">
+                <Clock class="w-5 h-5 sm:w-6 sm:h-6 text-sky-600 dark:text-sky-400" />
               </div>
-              <div class="text-2xl font-bold mb-2 text-orange-700 dark:text-orange-400">
-                {calculation.totalHoursPerYear - calculation.realBillableHoursPerYear}
+              <div class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-sky-700 dark:text-sky-400">
+                {calculation.realBillableHoursPerYear} h
               </div>
-              <div class="font-medium text-sm mb-1">Non-billable Hours</div>
-              <div class="text-xs text-muted-foreground">Admin, meetings, training</div>
+              <div class="font-medium text-xs sm:text-sm mb-1">Realistic Billable</div>
+              <div class="text-xs text-muted-foreground">{calculation.billableHoursPerYear}h theoretical</div>
             </div>
           </div>
         </Card.Content>
@@ -388,8 +451,25 @@
             Compare margins against 2024 industry data to ensure competitive yet sustainable salary levels
           </Card.Description>
         </Card.Header>
-        <Card.Content>
-          <MarginComparisonChart benchmarks={industryBenchmarks} comparison={marginComparison} />
+        <Card.Content class="relative">
+          <div class={!isProEnabled ? "blur-sm pointer-events-none" : ""}>
+            <MarginComparisonChart benchmarks={industryBenchmarks} comparison={marginComparison} />
+          </div>
+          
+          {#if !isProEnabled}
+            <!-- Pro Overlay -->
+            <div class="absolute inset-0 flex items-center justify-center bg-background/10 backdrop-blur-[2px] rounded-lg">
+              <div class="text-center p-6">
+                <Badge variant="secondary" class="bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-400 border-sky-200 dark:border-sky-800 text-xs">
+                  <Lock class="w-3 h-3 mr-1" />
+                  <span class="hidden xs:inline">Unlock with </span>Pro
+                </Badge>
+                <p class="text-sm text-muted-foreground mt-3 max-w-xs">
+                  Access detailed industry benchmarks
+                </p>
+              </div>
+            </div>
+          {/if}
         </Card.Content>
       </Card.Root>
     </div>
@@ -404,5 +484,6 @@
   {config}
   onClose={handleSettingsClose}
   onSave={handleSettingsSave}
+  onProStatusChange={handleProStatusChange}
 />
 

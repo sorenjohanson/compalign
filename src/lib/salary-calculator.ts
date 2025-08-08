@@ -40,6 +40,7 @@ export interface SalaryCalculation {
   // Breakdowns
   nonBillableTimeValue: number;
   employerContributionValue: number;
+  overheadCosts: number;
 }
 
 export interface CalculatorConfig {
@@ -52,8 +53,7 @@ export interface CalculatorConfig {
   workingDaysPerWeek: number; // 5 days
   hoursPerWorkingDay: number; // 8 hours
   
-  // Real-world utilisation and fuzzy costs
-  utilisationRate: number; // % of working hours that are billable (0.6 = 60%)
+  // Real-world non-billable work (utilisation calculated from these)
   salesDemosHours: number; // Hours per week on sales demos
   internalMeetingsHours: number; // Hours per week on internal meetings
   adminTasksHours: number; // Hours per week on admin/paperwork
@@ -61,26 +61,31 @@ export interface CalculatorConfig {
   
   // Target margin for negotiation positioning
   targetNetMargin: number; // Target company net margin percentage for negotiations
+  
+  // Overhead costs
+  overheadAsPercentOfRevenue: number; // Overhead costs as percentage of revenue (office, admin, etc.)
 }
 
 export const defaultConfig: CalculatorConfig = {
   employerSocialContributionRate: 0.20, // 20%
   vacationDays: 30,
-  sickDaysEstimate: 8, // Conservative estimate
+  sickDaysEstimate: 9.5, // Average in 2025 for Germany
   trainingDays: 10, // Professional development
   publicHolidays: 11, // Average for Germany
   workingDaysPerWeek: 5,
   hoursPerWorkingDay: 8,
   
-  // Real-world utilisation defaults (based on consulting industry averages)
-  utilisationRate: 0.65, // 65% - realistic for consulting/professional services
+  // Non-billable work defaults (based on consulting industry averages)
   salesDemosHours: 2, // 2 hours per week on average
   internalMeetingsHours: 4, // 4 hours per week (team meetings, planning, etc.)
   adminTasksHours: 2, // 2 hours per week (timesheets, expenses, etc.)
   businessDevelopmentHours: 1, // 1 hour per week (networking, proposals)
   
   // Negotiation target (industry average for professional services)
-  targetNetMargin: 25 // 25% target net margin for salary negotiations
+  targetNetMargin: 25, // 25% target net margin for salary negotiations
+  
+  // Overhead costs (office, admin, tools, marketing, etc.)
+  overheadAsPercentOfRevenue: 0.15 // 15% of revenue goes to overhead costs
 };
 
 // localStorage utilities for settings persistence
@@ -185,38 +190,55 @@ export function calculateSalaryBreakdown(
   const workingDaysPerYear = potentialWorkingDays - nonWorkingDays;
   const totalHoursPerYear = workingDaysPerYear * config.hoursPerWorkingDay;
   
-  // Traditional billable hours (excluding training days as they're typically non-billable)
-  const billableDays = workingDaysPerYear - config.trainingDays;
-  const billableHoursPerYear = billableDays * config.hoursPerWorkingDay;
+  // Calculate weekly fuzzy hours and validate
+  const workingWeeksPerYear = Math.floor(workingDaysPerYear / 5);
+  const maxWeeklyHours = config.workingDaysPerWeek * config.hoursPerWorkingDay;
+  const totalFuzzyHoursPerWeek = config.salesDemosHours + config.internalMeetingsHours + config.adminTasksHours + config.businessDevelopmentHours;
   
-  // Real-world billable hours using utilisation rate
-  const realBillableHoursPerYear = Math.floor(billableHoursPerYear * config.utilisationRate);
+  // Ensure fuzzy hours don't exceed weekly total
+  const validatedFuzzyHours = Math.min(totalFuzzyHoursPerWeek, maxWeeklyHours);
+  const fuzzyHoursRatio = validatedFuzzyHours > 0 ? validatedFuzzyHours / totalFuzzyHoursPerWeek : 1;
   
-  // Calculate fuzzy cost breakdown
-  const workingWeeksPerYear = Math.floor(workingDaysPerYear / 5); // Convert days to weeks
-  const salesDemosAnnual = config.salesDemosHours * workingWeeksPerYear;
-  const internalMeetingsAnnual = config.internalMeetingsHours * workingWeeksPerYear;
-  const adminTasksAnnual = config.adminTasksHours * workingWeeksPerYear;
-  const businessDevelopmentAnnual = config.businessDevelopmentHours * workingWeeksPerYear;
+  // Scale down individual fuzzy hours proportionally if they exceed the limit
+  const adjustedSalesDemosHours = config.salesDemosHours * fuzzyHoursRatio;
+  const adjustedInternalMeetingsHours = config.internalMeetingsHours * fuzzyHoursRatio;
+  const adjustedAdminTasksHours = config.adminTasksHours * fuzzyHoursRatio;
+  const adjustedBusinessDevelopmentHours = config.businessDevelopmentHours * fuzzyHoursRatio;
+  
+  // Calculate billable hours after deducting non-billable work
+  const weeklyBillableHours = maxWeeklyHours - validatedFuzzyHours;
+  const realBillableHoursPerYear = weeklyBillableHours * workingWeeksPerYear;
+  
+  // Calculate utilisation rate from actual non-billable work
+  const utilisationRate = totalHoursPerYear > 0 ? realBillableHoursPerYear / totalHoursPerYear : 0;
+  
+  // For backwards compatibility, also calculate theoretical max billable hours
+  const billableHoursPerYear = workingDaysPerYear * config.hoursPerWorkingDay;
+  
+  // Calculate fuzzy cost breakdown using adjusted hours
+  const salesDemosAnnual = adjustedSalesDemosHours * workingWeeksPerYear;
+  const internalMeetingsAnnual = adjustedInternalMeetingsHours * workingWeeksPerYear;
+  const adminTasksAnnual = adjustedAdminTasksHours * workingWeeksPerYear;
+  const businessDevelopmentAnnual = adjustedBusinessDevelopmentHours * workingWeeksPerYear;
   
   const fuzzyCostBreakdown = {
     salesDemos: {
-      hoursPerWeek: config.salesDemosHours,
+      hoursPerWeek: adjustedSalesDemosHours,
       annualHours: salesDemosAnnual,
       costValue: salesDemosAnnual * customerHourlyRate
     },
     internalMeetings: {
-      hoursPerWeek: config.internalMeetingsHours,
+      hoursPerWeek: adjustedInternalMeetingsHours,
       annualHours: internalMeetingsAnnual,
       costValue: internalMeetingsAnnual * customerHourlyRate
     },
     adminTasks: {
-      hoursPerWeek: config.adminTasksHours,
+      hoursPerWeek: adjustedAdminTasksHours,
       annualHours: adminTasksAnnual,
       costValue: adminTasksAnnual * customerHourlyRate
     },
     businessDevelopment: {
-      hoursPerWeek: config.businessDevelopmentHours,
+      hoursPerWeek: adjustedBusinessDevelopmentHours,
       annualHours: businessDevelopmentAnnual,
       costValue: businessDevelopmentAnnual * customerHourlyRate
     },
@@ -234,11 +256,14 @@ export function calculateSalaryBreakdown(
   // Revenue calculations using real billable hours
   const annualRevenue = realBillableHoursPerYear * customerHourlyRate;
   
+  // Overhead costs
+  const overheadCosts = annualRevenue * config.overheadAsPercentOfRevenue;
+  
   // Margin calculations
   const grossMargin = annualRevenue - grossSalaryAnnual;
   const grossMarginPercentage = annualRevenue > 0 ? (grossMargin / annualRevenue) * 100 : 0;
   
-  const netMargin = annualRevenue - totalEmployerCosts;
+  const netMargin = annualRevenue - totalEmployerCosts - overheadCosts;
   const netMarginPercentage = annualRevenue > 0 ? (netMargin / annualRevenue) * 100 : 0;
   
   // Value of non-billable time and employer contributions
@@ -261,11 +286,12 @@ export function calculateSalaryBreakdown(
     grossMarginPercentage,
     netMargin,
     netMarginPercentage,
-    utilisationRate: config.utilisationRate,
+    utilisationRate,
     realBillableHoursPerYear,
     fuzzyCostBreakdown,
     nonBillableTimeValue,
-    employerContributionValue
+    employerContributionValue,
+    overheadCosts
   };
 }
 
@@ -400,13 +426,29 @@ export function generateStrategicInsights(
     impact: revenueMultiplier >= 3 ? 'positive' : revenueMultiplier >= 2 ? 'neutral' : 'negative'
   });
   
-  // Target margin performance
+  // Target margin performance with tolerance
   const marginGap = calculation.netMarginPercentage - config.targetNetMargin;
+  const marginStatus = getMarginStatus(calculation.netMarginPercentage, config.targetNetMargin);
+  
+  let description: string;
+  let impact: 'positive' | 'negative' | 'neutral';
+  
+  if (marginStatus === 'above') {
+    description = 'Exceeding target margin';
+    impact = 'positive';
+  } else if (marginStatus === 'exact') {
+    description = 'Meeting target margin';
+    impact = 'neutral';
+  } else {
+    description = 'Below target margin';
+    impact = 'negative';
+  }
+  
   insights.push({
     category: 'Target Performance',
-    description: marginGap >= 0 ? 'Exceeding target margin' : 'Below target margin',
+    description,
     value: `${marginGap >= 0 ? '+' : ''}${marginGap.toFixed(1)}%`,
-    impact: marginGap >= 0 ? 'positive' : 'negative'
+    impact
   });
   
   // Break-even analysis
@@ -415,7 +457,7 @@ export function generateStrategicInsights(
   insights.push({
     category: 'Break-Even Point',
     description: 'Billable hours needed to cover all costs',
-    value: `${breakEvenHours}h`,
+    value: `${breakEvenHours} h`,
     impact: breakEvenHours <= calculation.realBillableHoursPerYear ? 'positive' : 'negative'
   });
   
@@ -444,6 +486,19 @@ export function getIndustryMarginStats() {
   };
 }
 
+// Function to determine margin status relative to target with tolerance
+export function getMarginStatus(actualMargin: number, targetMargin: number, tolerance: number = 0.5): 'above' | 'exact' | 'below' {
+  const diff = actualMargin - targetMargin;
+  
+  if (Math.abs(diff) <= tolerance) {
+    return 'exact';
+  } else if (diff > tolerance) {
+    return 'above';
+  } else {
+    return 'below';
+  }
+}
+
 // Function to determine margin position relative to industry standards
 export function getMarginPosition(netMarginPercentage: number): 'below_low' | 'average' | 'above_high' {
   const { industryLow, industryHigh } = getIndustryMarginStats();
@@ -455,6 +510,25 @@ export function getMarginPosition(netMarginPercentage: number): 'below_low' | 'a
   } else {
     return 'average';
   }
+}
+
+// Function to validate fuzzy hours configuration
+export function validateFuzzyHours(config: CalculatorConfig): {
+  isValid: boolean;
+  totalFuzzyHours: number;
+  maxWeeklyHours: number;
+  exceededBy: number;
+} {
+  const totalFuzzyHours = config.salesDemosHours + config.internalMeetingsHours + config.adminTasksHours + config.businessDevelopmentHours;
+  const maxWeeklyHours = config.workingDaysPerWeek * config.hoursPerWorkingDay;
+  const exceededBy = Math.max(0, totalFuzzyHours - maxWeeklyHours);
+  
+  return {
+    isValid: totalFuzzyHours <= maxWeeklyHours,
+    totalFuzzyHours,
+    maxWeeklyHours,
+    exceededBy
+  };
 }
 
 // Function to compare margins with industry benchmarks
@@ -512,4 +586,22 @@ export function generateMarginComparison(
     closestBenchmark,
     recommendations
   };
+}
+
+// Pro features management
+const PRO_STORAGE_KEY = 'salary_calculator_pro';
+
+export function isProUnlocked(): boolean {
+  if (typeof localStorage === 'undefined') return false;
+  return localStorage.getItem(PRO_STORAGE_KEY) === 'true';
+}
+
+export function unlockPro(): void {
+  if (typeof localStorage === 'undefined') return;
+  localStorage.setItem(PRO_STORAGE_KEY, 'true');
+}
+
+export function lockPro(): void {
+  if (typeof localStorage === 'undefined') return;
+  localStorage.removeItem(PRO_STORAGE_KEY);
 }
