@@ -38,7 +38,7 @@
 
 	// Validate fuzzy hours
 	let fuzzyHoursValidation = $derived(validateFuzzyHours(tempConfig));
-	
+
 	// Calculate utilisation rate from the current config
 	let calculatedUtilisationRate = $derived(() => {
 		// Use sample values for calculation - we just need the utilisation rate
@@ -98,7 +98,7 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Content class="max-h-[90vh] max-w-2xl overflow-y-auto w-[95vw] sm:w-full">
+	<Dialog.Content class="max-h-[90vh] w-[95vw] max-w-2xl overflow-y-auto sm:w-full">
 		<Dialog.Header>
 			<Dialog.Title class="flex items-center gap-2">
 				<Settings class="h-5 w-5" />
@@ -109,33 +109,35 @@
 			</Dialog.Description>
 		</Dialog.Header>
 
-		<div class="space-y-4 sm:space-y-6 py-4">
+		<div class="space-y-4 py-4 sm:space-y-6">
 			<!-- Pro Features Section -->
-			<div class="border rounded-lg p-4 bg-gradient-to-r from-blue-50/50 to-blue-50/50 dark:from-blue-950/20 dark:to-blue-950/20 border-blue-200/50 dark:border-blue-800/50">
-				<div class="flex items-center justify-between mb-3">
+			<div
+				class="rounded-lg border border-blue-200/50 bg-gradient-to-r from-blue-50/50 to-blue-50/50 p-4 dark:border-blue-800/50 dark:from-blue-950/20 dark:to-blue-950/20"
+			>
+				<div class="mb-3 flex items-center justify-between">
 					<div class="flex items-center gap-2">
 						{#if isProEnabled}
 							<Unlock class="h-5 w-5 text-blue-600 dark:text-blue-300" />
-							<span class="font-medium text-blue-700 dark:text-blue-300">Pro Features Unlocked</span>
+							<span class="font-medium text-blue-700 dark:text-blue-300">Pro Features Unlocked</span
+							>
 						{:else}
 							<Lock class="h-5 w-5 text-blue-600 dark:text-blue-300" />
 							<span class="font-medium text-blue-700 dark:text-blue-300">Pro Features</span>
 						{/if}
 					</div>
 					<Button
-						variant={isProEnabled ? "outline" : "default"}
+						variant={isProEnabled ? 'outline' : 'default'}
 						size="sm"
 						onclick={handleProToggle}
-						class={isProEnabled 
-							? "border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300" 
-							: "bg-blue-600 hover:bg-blue-700 text-white"
-						}
+						class={isProEnabled
+							? 'border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300'
+							: 'bg-blue-600 text-white hover:bg-blue-700'}
 					>
 						{#if isProEnabled}
-							<Lock class="w-4 h-4 mr-2" />
+							<Lock class="mr-2 h-4 w-4" />
 							Lock Pro
 						{:else}
-							<Unlock class="w-4 h-4 mr-2" />
+							<Unlock class="mr-2 h-4 w-4" />
 							Unlock Pro
 						{/if}
 					</Button>
@@ -155,8 +157,8 @@
 
 			<!-- Work Schedule -->
 			<div class="space-y-3 sm:space-y-4">
-				<h3 class="text-base font-medium border-b pb-2">Work Schedule</h3>
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<h3 class="border-b pb-2 text-base font-medium">Work Schedule</h3>
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="space-y-2">
 						<label for="workingDaysPerWeek" class="text-sm font-medium">Working Days / Week</label>
 						<Input
@@ -186,8 +188,8 @@
 
 			<!-- Time Off -->
 			<div class="space-y-3 sm:space-y-4">
-				<h3 class="text-base font-medium border-b pb-2">Time Off (Days per Year)</h3>
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<h3 class="border-b pb-2 text-base font-medium">Time Off (Days per Year)</h3>
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="space-y-2">
 						<label for="vacationDays" class="text-sm font-medium">Vacation</label>
 						<Input
@@ -241,13 +243,13 @@
 
 			<!-- Non-Billable Work -->
 			<div class="space-y-3 sm:space-y-4">
-				<div class="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-2 gap-1">
+				<div class="flex flex-col justify-between gap-1 border-b pb-2 sm:flex-row sm:items-center">
 					<h3 class="text-base font-medium">Non-Billable Work (Hours/Week)</h3>
 					<span class="text-sm text-muted-foreground">
 						Utilisation: {calculatedUtilisationRate().toFixed(0)}%
 					</span>
 				</div>
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="space-y-2">
 						<label for="internalMeetings" class="text-sm font-medium">Meetings</label>
 						<Input
@@ -301,8 +303,8 @@
 
 			<!-- Financial Settings -->
 			<div class="space-y-3 sm:space-y-4">
-				<h3 class="text-base font-medium border-b pb-2">Financial Settings</h3>
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<h3 class="border-b pb-2 text-base font-medium">Financial Settings</h3>
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="space-y-2">
 						<label for="employerRate" class="text-sm font-medium">Employer Costs (%)</label>
 						<Input
@@ -313,7 +315,9 @@
 							max="25"
 							step="1"
 						/>
-						<p class="text-xs text-muted-foreground">Social contributions, insurance, benefits (German standard: 20%)</p>
+						<p class="text-xs text-muted-foreground">
+							Social contributions, insurance, benefits (German standard: 20%)
+						</p>
 					</div>
 					<div class="space-y-2">
 						<label for="overheadPercent" class="text-sm font-medium">Overhead (%)</label>
@@ -325,10 +329,12 @@
 							max="40"
 							step="1"
 						/>
-						<p class="text-xs text-muted-foreground">Office, admin, tools, marketing costs (15% is typical)</p>
+						<p class="text-xs text-muted-foreground">
+							Office, admin, tools, marketing costs (15% is typical)
+						</p>
 					</div>
 				</div>
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="space-y-2">
 						<label for="targetMargin" class="text-sm font-medium">Target Net Margin (%)</label>
 						<Input
@@ -339,13 +345,15 @@
 							max="50"
 							step="1"
 						/>
-						<p class="text-xs text-muted-foreground">Company's target net margin percentage for sustainable operations</p>
+						<p class="text-xs text-muted-foreground">
+							Company's target net margin percentage for sustainable operations
+						</p>
 					</div>
 				</div>
 			</div>
 
 			<!-- Configuration Summary -->
-			<Card.Root class="sm:block hidden">
+			<Card.Root class="hidden sm:block">
 				<Card.Header>
 					<Card.Title class="text-base">Configuration Summary</Card.Title>
 				</Card.Header>
@@ -382,7 +390,7 @@
 					<!-- Non-Billable Hours -->
 					<div class="space-y-2 border-t pt-2">
 						<div class="text-xs font-medium">Weekly Non-Billable Hours:</div>
-						<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+						<div class="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
 							<div class="flex justify-between">
 								<span class="text-muted-foreground">Meetings:</span>
 								<span>{tempConfig.internalMeetingsHours}h</span>
@@ -402,13 +410,18 @@
 						</div>
 						<div class="flex justify-between border-t pt-1">
 							<span class="font-medium text-muted-foreground">Total non-billable hours/week:</span>
-							<span class="font-medium {!fuzzyHoursValidation.isValid ? 'text-slate-600 dark:text-slate-300' : ''}">
+							<span
+								class="font-medium {!fuzzyHoursValidation.isValid
+									? 'text-slate-600 dark:text-slate-300'
+									: ''}"
+							>
 								{fuzzyHoursValidation.totalFuzzyHours}h / {fuzzyHoursValidation.maxWeeklyHours}h
 							</span>
 						</div>
 						{#if !fuzzyHoursValidation.isValid}
-							<div class="text-xs text-slate-600 dark:text-slate-300 mt-1">
-								⚠️ Exceeds weekly capacity by {fuzzyHoursValidation.exceededBy.toFixed(1)}h. Hours will be scaled down proportionally.
+							<div class="mt-1 text-xs text-slate-600 dark:text-slate-300">
+								⚠️ Exceeds weekly capacity by {fuzzyHoursValidation.exceededBy.toFixed(1)}h. Hours
+								will be scaled down proportionally.
 							</div>
 						{/if}
 					</div>
@@ -438,16 +451,16 @@
 			</Card.Root>
 		</div>
 
-		<Dialog.Footer class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0">
+		<Dialog.Footer class="flex flex-col justify-between gap-3 sm:flex-row sm:gap-0">
 			<Button
 				variant="ghost"
 				onclick={handleResetToDefaults}
-				class={`w-full sm:w-auto ${resetConfirmation ? 'text-destructive bg-destructive/10 hover:bg-destructive/20 hover:text-destructive' : 'text-destructive hover:text-destructive'}`}
+				class={`w-full sm:w-auto ${resetConfirmation ? 'bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive' : 'text-destructive hover:text-destructive'}`}
 			>
 				{resetConfirmation ? 'Are you sure?' : 'Reset to Defaults'}
 			</Button>
 
-			<div class="flex gap-3 w-full sm:w-auto">
+			<div class="flex w-full gap-3 sm:w-auto">
 				<Button variant="outline" onclick={onClose} class="flex-1 sm:flex-none">Cancel</Button>
 				<Button onclick={handleSave} class="flex-1 sm:flex-none">Save Settings</Button>
 			</div>
