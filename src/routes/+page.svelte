@@ -125,8 +125,8 @@
 								<span class="text-xs text-muted-foreground/60 sm:text-sm">Employee</span>
 								<Switch
 									bind:checked={isFreelancerMode}
-									disabled={!isProEnabled}
-									class={!isProEnabled ? 'opacity-50' : ''}
+									disabled
+									class="opacity-50"
 								/>
 								<span class="text-xs text-muted-foreground/60 sm:text-sm">Freelancer</span>
 							</div>
