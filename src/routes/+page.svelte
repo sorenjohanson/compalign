@@ -18,13 +18,17 @@
 		type CalculatorConfig
 	} from '$lib/salary-calculator';
 	import SettingsDialog from '$lib/components/SettingsDialog.svelte';
+	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import MarginComparisonChart from '$lib/components/MarginComparisonChart.svelte';
+	import FormattedNumberInput from '$lib/components/FormattedNumberInput.svelte';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
+	import * as Alert from '$lib/components/ui/alert/index.js';
 	import Settings from '@lucide/svelte/icons/settings';
+	import Share2 from '@lucide/svelte/icons/share-2';
 	import Calculator from '@lucide/svelte/icons/calculator';
 	import TrendingUp from '@lucide/svelte/icons/trending-up';
 	import Euro from '@lucide/svelte/icons/euro';
@@ -39,6 +43,9 @@
 	import Calendar from '@lucide/svelte/icons/calendar';
 	import Lock from '@lucide/svelte/icons/lock';
 	import DarkModeToggle from '$lib/components/DarkModeToggle.svelte';
+	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 
 	// Load persisted values or use defaults
 	const savedInputs = loadInputValuesFromStorage();
@@ -46,8 +53,11 @@
 	let customerRate = $state(savedInputs.customerRate);
 	let config = $state(loadSettingsFromStorage());
 	let showSettings = $state(false);
+	let showShareDialog = $state(false);
 	let isFreelancerMode = $state(false);
 	let isProEnabled = $state(isProUnlocked());
+	let isSharedSession = $state(false);
+	let showSharedAlert = $state(false);
 
 	// Save input values to localStorage when they change
 	$effect(() => {
@@ -74,6 +84,47 @@
 	function handleProStatusChange() {
 		isProEnabled = isProUnlocked();
 	}
+
+	function handleShareClose() {
+		showShareDialog = false;
+	}
+
+	// Handle shared session data on mount
+	onMount(() => {
+		if (browser) {
+			// Check if this is a shared session
+			const urlParams = new URLSearchParams(window.location.search);
+			const isShared = urlParams.has('shared');
+			
+			if (isShared) {
+				const sharedData = localStorage.getItem('shared-calculator-data');
+				const isSharedFlag = localStorage.getItem('is-shared-session');
+				
+				if (sharedData && isSharedFlag) {
+					try {
+						const data = JSON.parse(sharedData);
+						grossSalary = data.grossSalary;
+						customerRate = data.customerRate;
+						config = { ...config, ...data.config };
+						isSharedSession = true;
+						showSharedAlert = true;
+						
+						// Clean up
+						localStorage.removeItem('shared-calculator-data');
+						localStorage.removeItem('is-shared-session');
+						
+						// Clean URL
+						window.history.replaceState({}, '', window.location.pathname);
+						
+						// Hide alert after 5 seconds
+						setTimeout(() => showSharedAlert = false, 5000);
+					} catch (err) {
+						console.error('Error loading shared data:', err);
+					}
+				}
+			}
+		}
+	});
 </script>
 
 <div
@@ -99,6 +150,15 @@
 					<Button
 						variant="outline"
 						size="sm"
+						onclick={() => (showShareDialog = true)}
+						class="flex items-center gap-2"
+					>
+						<Share2 class="h-4 w-4" />
+						<span class="hidden sm:inline">Share</span>
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
 						onclick={() => (showSettings = true)}
 						class="flex items-center gap-2"
 					>
@@ -108,6 +168,18 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Shared Session Alert -->
+		{#if showSharedAlert}
+			<div class="mb-6">
+				<Alert.Root class="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
+					<Users class="h-4 w-4" />
+					<Alert.Description>
+						You're now viewing a shared salary calculation. The values have been loaded automatically.
+					</Alert.Description>
+				</Alert.Root>
+			</div>
+		{/if}
 
 		<!-- Input Controls -->
 		<div class="mb-6 grid grid-cols-1 gap-4 sm:mb-8 sm:gap-6 md:grid-cols-2">
@@ -142,16 +214,14 @@
 				</Card.Header>
 				<Card.Content>
 					<div class="space-y-2">
-						<Input
-							type="number"
+						<FormattedNumberInput
 							bind:value={grossSalary}
-							placeholder="90000"
-							min="30000"
-							max="200000"
+							placeholder="90.000"
+							min="1"
 							step="1000"
 							class="h-12 text-lg"
 						/>
-						<p class="text-xs text-muted-foreground">Range: €30,000 - €200,000</p>
+						<p class="text-xs text-muted-foreground">Enter any positive amount (e.g., 90.000)</p>
 					</div>
 				</Card.Content>
 			</Card.Root>
@@ -160,21 +230,19 @@
 				<Card.Header>
 					<Card.Title class="flex items-center gap-2">
 						<Clock class="h-5 w-5 text-primary" />
-						Client Hourly Rate
+						Average Billing Rate
 					</Card.Title>
 				</Card.Header>
 				<Card.Content>
 					<div class="space-y-2">
-						<Input
-							type="number"
+						<FormattedNumberInput
 							bind:value={customerRate}
 							placeholder="110"
-							min="50"
-							max="300"
+							min="1"
 							step="5"
 							class="h-12 text-lg"
 						/>
-						<p class="text-xs text-muted-foreground">Range: €50 - €300 per hour</p>
+						<p class="text-xs text-muted-foreground">Enter any positive rate (e.g., 1.500)</p>
 					</div>
 				</Card.Content>
 			</Card.Root>
@@ -617,6 +685,15 @@
 		</div>
 	</div>
 </div>
+
+<!-- Share Dialog -->
+<ShareDialog
+	bind:open={showShareDialog}
+	{grossSalary}
+	{customerRate}
+	{config}
+	onClose={handleShareClose}
+/>
 
 <!-- Settings Dialog -->
 <SettingsDialog
