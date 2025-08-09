@@ -19,6 +19,7 @@ function socketIOPlugin() {
 			import('./src/lib/server/collaboration-server.js')
 				.then(({ setupCollaborationServer }) => {
 					// Cast to any to avoid complex HTTP server type issues in development
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					const io = setupCollaborationServer(server.httpServer as any);
 					console.log('Socket.IO server initialized in development mode');
 
