@@ -7,7 +7,7 @@ export interface SharedSession {
 	calculatorData: {
 		grossSalary: number;
 		customerRate: number;
-		config: any;
+		config: Record<string, unknown>;
 	};
 }
 

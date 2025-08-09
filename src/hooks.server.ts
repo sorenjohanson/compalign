@@ -1,9 +1,8 @@
 import { dev } from '$app/environment';
-import { setupCollaborationServer } from '$lib/server/collaboration-server.js';
 import { isSocketIOEnabled } from '$lib/feature-flags.js';
 import type { Handle } from '@sveltejs/kit';
 
-let io: any;
+let io: unknown;
 
 if (dev) {
 	console.log('Development mode: Socket.IO will be set up via Vite plugin');

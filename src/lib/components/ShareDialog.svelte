@@ -13,17 +13,16 @@
 		Key,
 		CheckCircle,
 		AlertCircle,
-		History,
-		Plus,
 		Trash2
 	} from '@lucide/svelte';
 	import { initializeCollaboration, joinSession } from '$lib/stores/collaboration';
+	import type { CalculatorConfig } from '$lib/salary-calculator';
 
 	interface Props {
 		open: boolean;
 		grossSalary: number;
 		customerRate: number;
-		config: any;
+		config: CalculatorConfig;
 		onClose: () => void;
 	}
 
@@ -93,7 +92,7 @@
 			}, 1000);
 
 			startOTPTimer();
-		} catch (err) {
+		} catch {
 			error = 'Network error. Please try again.';
 		} finally {
 			isCreating = false;

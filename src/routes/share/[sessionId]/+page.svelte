@@ -57,7 +57,7 @@
 				localStorage.setItem('collaboration-session-id', sessionId);
 				goto(`/share/${sessionId}/calculator`);
 			}
-		} catch (err) {
+		} catch {
 			error = 'Network error. Please try again.';
 		} finally {
 			isVerifying = false;
@@ -108,13 +108,13 @@
 					>
 						{#snippet children({ cells })}
 							<InputOTP.Group>
-								{#each cells.slice(0, 3) as cell}
+								{#each cells.slice(0, 3) as cell, i (i)}
 									<InputOTP.Slot {cell} />
 								{/each}
 							</InputOTP.Group>
 							<InputOTP.Separator />
 							<InputOTP.Group>
-								{#each cells.slice(3, 6) as cell}
+								{#each cells.slice(3, 6) as cell, i (i + 3)}
 									<InputOTP.Slot {cell} />
 								{/each}
 							</InputOTP.Group>

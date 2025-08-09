@@ -6,7 +6,7 @@
 		script.src = 'https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js';
 		script.defer = true;
 		script.onload = () => {
-			// @ts-ignore - Redoc is loaded globally
+			// @ts-expect-error - Redoc is loaded globally
 			Redoc.init(
 				'/api/openapi.json',
 				{

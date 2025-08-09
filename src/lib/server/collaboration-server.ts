@@ -200,7 +200,7 @@ export function setupCollaborationServer(httpServer: HTTPServer) {
 		});
 	});
 
-	function leaveSession(socket: any, sessionId: string) {
+	function leaveSession(socket: import('socket.io').Socket, sessionId: string) {
 		const session = collaborationSessions.get(sessionId);
 		const user = session?.users.get(socket.id);
 

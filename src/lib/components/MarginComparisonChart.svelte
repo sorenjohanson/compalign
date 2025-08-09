@@ -103,7 +103,7 @@
 		</div>
 
 		<div class="divide-y">
-			{#each chartData() as item}
+			{#each chartData() as item (item.name)}
 				<div class="flex items-center justify-between p-4 transition-colors hover:bg-muted/50">
 					<div class="flex items-center gap-3">
 						{#if item.type === 'yours'}

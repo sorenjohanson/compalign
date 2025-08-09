@@ -6,7 +6,7 @@ import { defineConfig } from 'vite';
 function socketIOPlugin() {
 	return {
 		name: 'socket-io',
-		configureServer(server: any) {
+		configureServer(server: import('vite').ViteDevServer) {
 			if (!server.httpServer) return;
 
 			// Only initialize Socket.IO when explicitly enabled via env var
@@ -18,12 +18,12 @@ function socketIOPlugin() {
 
 			import('./src/lib/server/collaboration-server.js')
 				.then(({ setupCollaborationServer }) => {
-					const io = setupCollaborationServer(server.httpServer);
+					const io = setupCollaborationServer(server.httpServer!);
 					console.log('Socket.IO server initialized in development mode');
 
-					(globalThis as any)._socketIO = io;
+					(globalThis as { _socketIO?: unknown })._socketIO = io;
 				})
-				.catch((error: any) => {
+				.catch((error: unknown) => {
 					console.error('Failed to setup Socket.IO server:', error);
 				});
 		}

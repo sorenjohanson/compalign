@@ -296,7 +296,7 @@ export function findBreakEvenSalary(
 ): number {
 	let low = 30000;
 	let high = 200000;
-	let tolerance = 100;
+	const tolerance = 100;
 
 	while (high - low > tolerance) {
 		const mid = (low + high) / 2;

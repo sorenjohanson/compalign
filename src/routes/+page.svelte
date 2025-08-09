@@ -6,15 +6,12 @@
 		industryBenchmarks,
 		formatCurrency,
 		formatPercentage,
-		defaultConfig,
-		getMarginPosition,
 		getMarginStatus,
 		loadSettingsFromStorage,
 		saveSettingsToStorage,
 		loadInputValuesFromStorage,
 		saveInputValuesToStorage,
 		isProUnlocked,
-		type SalaryCalculation,
 		type CalculatorConfig
 	} from '$lib/salary-calculator';
 	import SettingsDialog from '$lib/components/SettingsDialog.svelte';
@@ -24,7 +21,6 @@
 	import CollaborativeFormattedNumberInput from '$lib/components/CollaborativeFormattedNumberInput.svelte';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Alert from '$lib/components/ui/alert/index.js';
@@ -36,11 +32,10 @@
 		Euro,
 		Clock,
 		Users,
-		Info,
 		ArrowUpRight,
 		ArrowDownRight,
 		ArrowRight,
-		BarChart3,
+		ChartBar,
 		Target,
 		Calendar,
 		Lock
@@ -53,7 +48,6 @@
 		isInSession,
 		effectiveProStatus
 	} from '$lib/stores/collaboration';
-	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 	import { isCollaborationEnabled } from '$lib/feature-flags';
@@ -65,23 +59,16 @@
 	let showSettings = $state(false);
 	let showShareDialog = $state(false);
 	let isFreelancerMode = $state(false);
-	let isProEnabled = $state($effectiveProStatus);
-	let isSharedSession = $state(false);
+	let isProEnabled = $derived($effectiveProStatus);
 	let showSharedAlert = $state(false);
-	let currentSessionId = $state<string | null>(null);
 
 	$effect(() => {
 		saveInputValuesToStorage({ grossSalary, customerRate });
 	});
 
-	$effect(() => {
-		isProEnabled = $effectiveProStatus;
-	});
-
 	let calculation = $derived(calculateSalaryBreakdown(grossSalary, customerRate, config));
 	let strategicInsights = $derived(generateStrategicInsights(calculation, config));
 	let marginComparison = $derived(generateMarginComparison(calculation));
-	let marginPosition = $derived(getMarginPosition(calculation.netMarginPercentage));
 	let marginStatus = $derived(
 		getMarginStatus(calculation.netMarginPercentage, config.targetNetMargin)
 	);
@@ -109,7 +96,7 @@
 	}
 
 	function handleCollaborationFieldUpdate(event: CustomEvent) {
-		const { fieldId, value, userId } = event.detail;
+		const { fieldId, value } = event.detail;
 
 		switch (fieldId) {
 			case 'grossSalary':
@@ -152,14 +139,12 @@
 						grossSalary = data.grossSalary;
 						customerRate = data.customerRate;
 						config = { ...config, ...data.config };
-						isSharedSession = true;
 						showSharedAlert = true;
 
 						// Use sessionId from URL or fallback to stored one
 						const collaborationSessionId = sessionId || storedSessionId;
 						if (collaborationSessionId) {
-							currentSessionId = collaborationSessionId;
-							console.log('Joining collaboration session:', collaborationSessionId);
+								console.log('Joining collaboration session:', collaborationSessionId);
 
 							// Small delay to ensure Socket.IO is initialized
 							setTimeout(() => {
@@ -652,7 +637,7 @@
 				</Card.Header>
 				<Card.Content>
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
-						{#each strategicInsights as insight}
+						{#each strategicInsights as insight (insight.category)}
 							<div
 								class="rounded-lg border p-3 text-center sm:p-4 {insight.impact === 'positive'
 									? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30'
@@ -742,7 +727,7 @@
 			<Card.Root>
 				<Card.Header>
 					<Card.Title class="flex items-center gap-2">
-						<BarChart3 class="h-6 w-6 text-primary" />
+						<ChartBar class="h-6 w-6 text-primary" />
 						Industry Margin Benchmarks
 					</Card.Title>
 					<Card.Description>

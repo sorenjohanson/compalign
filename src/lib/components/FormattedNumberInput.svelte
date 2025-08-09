@@ -44,10 +44,6 @@
 		}
 	});
 
-	$effect(() => {
-		displayValue = formatNumber(value);
-	});
-
 	function handleInput(event: Event) {
 		const target = event.target as HTMLInputElement;
 		let inputValue = target.value;

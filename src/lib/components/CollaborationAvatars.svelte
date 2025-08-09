@@ -2,7 +2,7 @@
 	import * as Avatar from '$lib/components/ui/avatar';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import { totalUsers, isInSession, currentUser } from '$lib/stores/collaboration';
-	import { Wifi, WifiOff } from '@lucide/svelte';
+	import { Wifi } from '@lucide/svelte';
 
 	const visibleUsers = $derived($totalUsers.slice(0, 5));
 	const overflowCount = $derived(Math.max(0, $totalUsers.length - 5));
@@ -13,7 +13,7 @@
 		class="flex items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/80"
 	>
 		<div class="flex items-center -space-x-2">
-			{#each visibleUsers as user, index}
+			{#each visibleUsers as user (user.id)}
 				<Tooltip.Provider>
 					<Tooltip.Root>
 						<Tooltip.Trigger>

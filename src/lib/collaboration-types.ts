@@ -22,7 +22,7 @@ export interface CollaborationSession {
 	calculatorData: {
 		grossSalary: number;
 		customerRate: number;
-		config: any;
+		config: Record<string, unknown>;
 	};
 	fieldFocuses: Map<string, FieldFocus>; // fieldId -> focus info
 	lastUpdated: Date;
@@ -38,8 +38,8 @@ export interface SocketEvents {
 	) => void;
 	'leave-session': (sessionId: string) => void;
 	'field-focus': (sessionId: string, fieldId: string | null) => void;
-	'field-update': (sessionId: string, fieldId: string, value: any) => void;
-	'settings-update': (sessionId: string, config: any) => void;
+	'field-update': (sessionId: string, fieldId: string, value: unknown) => void;
+	'settings-update': (sessionId: string, config: Record<string, unknown>) => void;
 	'user-typing': (sessionId: string, fieldId: string, isTyping: boolean) => void;
 
 	// Server -> Client
@@ -52,8 +52,8 @@ export interface SocketEvents {
 	'user-left': (userId: string) => void;
 	'user-updated': (user: CollaborationUser) => void;
 	'field-focused': (fieldId: string | null, user: CollaborationUser) => void;
-	'field-updated': (fieldId: string, value: any, userId: string) => void;
-	'settings-updated': (config: any, userId: string) => void;
+	'field-updated': (fieldId: string, value: unknown, userId: string) => void;
+	'settings-updated': (config: Record<string, unknown>, userId: string) => void;
 	'user-typing-status': (fieldId: string, userId: string, isTyping: boolean) => void;
 	'collaboration-error': (message: string) => void;
 }

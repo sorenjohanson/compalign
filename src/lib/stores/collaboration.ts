@@ -235,13 +235,13 @@ export function focusField(fieldId: string | null) {
 	socket.emit('field-focus', currentSessionId, fieldId);
 }
 
-export function updateField(fieldId: string, value: any) {
+export function updateField(fieldId: string, value: unknown) {
 	if (!socket || !currentSessionId) return;
 
 	socket.emit('field-update', currentSessionId, fieldId, value);
 }
 
-export function updateSettings(config: any) {
+export function updateSettings(config: Record<string, unknown>) {
 	if (!socket || !currentSessionId) return;
 
 	socket.emit('settings-update', currentSessionId, config);

@@ -6,15 +6,12 @@
 		industryBenchmarks,
 		formatCurrency,
 		formatPercentage,
-		defaultConfig,
-		getMarginPosition,
 		getMarginStatus,
 		loadSettingsFromStorage,
 		saveSettingsToStorage,
 		loadInputValuesFromStorage,
 		saveInputValuesToStorage,
 		isProUnlocked,
-		type SalaryCalculation,
 		type CalculatorConfig
 	} from '$lib/salary-calculator';
 	import SettingsDialog from '$lib/components/SettingsDialog.svelte';
@@ -24,7 +21,6 @@
 	import {
 		initializeCollaboration,
 		joinSession,
-		isInSession,
 		leaveSession,
 		effectiveProStatus
 	} from '$lib/stores/collaboration';
@@ -40,7 +36,6 @@
 		Euro,
 		Clock,
 		Users,
-		Info,
 		ArrowUpRight,
 		ArrowDownRight,
 		ArrowRight,
@@ -53,7 +48,7 @@
 	import DarkModeToggle from '$lib/components/DarkModeToggle.svelte';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import { isCollaborationEnabled } from '$lib/feature-flags';
 
 	const sessionId = $page.params.sessionId as string;
@@ -64,21 +59,16 @@
 	let config = $state(loadSettingsFromStorage());
 	let showSettings = $state(false);
 	let isFreelancerMode = $state(false);
-	let isProEnabled = $state($effectiveProStatus);
+	let isProEnabled = $derived($effectiveProStatus);
 	let showSharedAlert = $state(true);
 
 	$effect(() => {
 		saveInputValuesToStorage({ grossSalary, customerRate });
 	});
 
-	$effect(() => {
-		isProEnabled = $effectiveProStatus;
-	});
-
 	let calculation = $derived(calculateSalaryBreakdown(grossSalary, customerRate, config));
 	let strategicInsights = $derived(generateStrategicInsights(calculation, config));
 	let marginComparison = $derived(generateMarginComparison(calculation));
-	let marginPosition = $derived(getMarginPosition(calculation.netMarginPercentage));
 	let marginStatus = $derived(
 		getMarginStatus(calculation.netMarginPercentage, config.targetNetMargin)
 	);
@@ -97,7 +87,7 @@
 	}
 
 	function handleCollaborationFieldUpdate(event: CustomEvent) {
-		const { fieldId, value, userId } = event.detail;
+		const { fieldId, value } = event.detail;
 
 		switch (fieldId) {
 			case 'grossSalary':
@@ -616,7 +606,7 @@
 				</Card.Header>
 				<Card.Content>
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
-						{#each strategicInsights as insight}
+						{#each strategicInsights as insight (insight.category)}
 							<div
 								class="rounded-lg border p-3 text-center sm:p-4 {insight.impact === 'positive'
 									? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30'

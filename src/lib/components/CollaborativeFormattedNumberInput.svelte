@@ -35,7 +35,7 @@
 	const hasFocus = $derived(!!focusedUser);
 	const focusRingColor = $derived(focusedUser?.color || '#3b82f6');
 
-	function dispatch(eventName: string, detail: any) {
+	function dispatch(eventName: string, detail: unknown) {
 		if (eventName === 'change' && onchange) {
 			onchange(new CustomEvent('change', { detail }));
 		}
