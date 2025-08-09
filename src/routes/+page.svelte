@@ -144,7 +144,7 @@
 						// Use sessionId from URL or fallback to stored one
 						const collaborationSessionId = sessionId || storedSessionId;
 						if (collaborationSessionId) {
-								console.log('Joining collaboration session:', collaborationSessionId);
+							console.log('Joining collaboration session:', collaborationSessionId);
 
 							// Small delay to ensure Socket.IO is initialized
 							setTimeout(() => {

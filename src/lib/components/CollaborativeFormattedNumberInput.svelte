@@ -36,11 +36,23 @@
 	const focusRingColor = $derived(focusedUser?.color || '#3b82f6');
 
 	function dispatch(eventName: string, detail: unknown) {
-		if (eventName === 'change' && onchange) {
-			onchange(new CustomEvent('change', { detail }));
+		if (
+			eventName === 'change' &&
+			onchange &&
+			typeof detail === 'object' &&
+			detail !== null &&
+			'value' in detail
+		) {
+			onchange(new CustomEvent('change', { detail: detail as { value: number } }));
 		}
-		if (eventName === 'input' && oninput) {
-			oninput(new CustomEvent('input', { detail }));
+		if (
+			eventName === 'input' &&
+			oninput &&
+			typeof detail === 'object' &&
+			detail !== null &&
+			'value' in detail
+		) {
+			oninput(new CustomEvent('input', { detail: detail as { value: number } }));
 		}
 	}
 

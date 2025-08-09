@@ -148,9 +148,9 @@ export function setupCollaborationServer(httpServer: HTTPServer) {
 
 				if (!session || !user) return;
 
-				if (fieldId === 'grossSalary') {
+				if (fieldId === 'grossSalary' && typeof value === 'number') {
 					session.calculatorData.grossSalary = value;
-				} else if (fieldId === 'customerRate') {
+				} else if (fieldId === 'customerRate' && typeof value === 'number') {
 					session.calculatorData.customerRate = value;
 				}
 

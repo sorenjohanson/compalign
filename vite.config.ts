@@ -18,7 +18,8 @@ function socketIOPlugin() {
 
 			import('./src/lib/server/collaboration-server.js')
 				.then(({ setupCollaborationServer }) => {
-					const io = setupCollaborationServer(server.httpServer!);
+					// Cast to any to avoid complex HTTP server type issues in development
+					const io = setupCollaborationServer(server.httpServer as any);
 					console.log('Socket.IO server initialized in development mode');
 
 					(globalThis as { _socketIO?: unknown })._socketIO = io;
