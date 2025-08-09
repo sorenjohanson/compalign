@@ -82,7 +82,7 @@
  *               properties:
  *                 error:
  *                   type: string
- *                   example: "Missing required calculator data"
+ *                   example: "Missing required data"
  *       500:
  *         description: Internal server error
  *         content:
@@ -97,33 +97,37 @@
 
 import { json } from '@sveltejs/kit';
 import { createOrUpdateSharedSession, generateShareableLink } from '$lib/collaboration.js';
+import { isCollaborationApiEnabled } from '$lib/feature-flags.js';
 import type { RequestHandler } from './$types.js';
 
 export const POST: RequestHandler = async ({ request, url }) => {
+	if (!isCollaborationApiEnabled()) {
+		return json({ error: 'Collaboration features are disabled' }, { status: 404 });
+	}
+
 	try {
 		const { grossSalary, customerRate, config } = await request.json();
-		
+
 		if (!grossSalary || !customerRate) {
 			return json({ error: 'Missing required calculator data' }, { status: 400 });
 		}
-		
-		// Validate input ranges
+
 		if (grossSalary <= 0) {
-			return json({ error: 'Gross salary must be greater than €0' }, { status: 400 });
+			return json({ error: 'Gross salary must be greater than 0' }, { status: 400 });
 		}
-		
+
 		if (customerRate <= 0) {
-			return json({ error: 'Customer rate must be greater than €0 per hour' }, { status: 400 });
+			return json({ error: 'Customer rate must be greater than 0 per hour' }, { status: 400 });
 		}
-		
+
 		const session = createOrUpdateSharedSession({
 			grossSalary,
 			customerRate,
 			config
 		});
-		
+
 		const shareableLink = generateShareableLink(session.id, url.origin);
-		
+
 		return json({
 			sessionId: session.id,
 			otpCode: session.otpCode,

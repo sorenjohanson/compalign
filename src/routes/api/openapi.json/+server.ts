@@ -46,7 +46,8 @@ const openApiSpec = {
 			post: {
 				tags: ['Collaboration'],
 				summary: 'Create or update shared CompAlign session',
-				description: 'Creates a new shared session or updates an existing one with fresh CompAlign data and rotated OTP. Only one session can be active at a time.',
+				description:
+					'Creates a new shared session or updates an existing one with fresh CompAlign data and rotated OTP. Only one session can be active at a time.',
 				operationId: 'createOrUpdateShare',
 				requestBody: {
 					required: true,
@@ -365,7 +366,7 @@ const openApiSpec = {
 						minimum: 0,
 						maximum: 1,
 						description: 'Employer social contribution rate (decimal)',
-						example: 0.20
+						example: 0.2
 					},
 					vacationDays: {
 						type: 'number',
@@ -386,7 +387,7 @@ const openApiSpec = {
 						minimum: 0,
 						maximum: 1,
 						description: 'Target net profit margin (decimal)',
-						example: 0.20
+						example: 0.2
 					},
 					overheadAsPercentOfRevenue: {
 						type: 'number',

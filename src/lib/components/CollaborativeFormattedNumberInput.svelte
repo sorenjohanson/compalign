@@ -79,20 +79,20 @@
 	function handleInput(event: Event) {
 		const target = event.target as HTMLInputElement;
 		const rawValue = target.value;
-		
+
 		const cleanValue = rawValue.replace(/[^\d.]/g, '');
-		
+
 		const numericValue = parseDisplayValue(cleanValue);
-		
+
 		isExternalUpdate = true;
 		value = numericValue;
 		displayValue = cleanValue;
 		isExternalUpdate = false;
-		
+
 		dispatch('input', { value: numericValue });
-		
+
 		setTypingStatus(fieldId, true);
-		
+
 		clearTimeout(typingTimeout);
 		typingTimeout = setTimeout(() => {
 			setTypingStatus(fieldId, false);
@@ -103,15 +103,15 @@
 		const target = event.target as HTMLInputElement;
 		const cleanValue = target.value.replace(/[^\d.]/g, '');
 		const numericValue = parseDisplayValue(cleanValue);
-		
+
 		isExternalUpdate = true;
 		displayValue = formatNumber(numericValue);
 		value = numericValue;
 		isExternalUpdate = false;
-		
+
 		updateField(fieldId, numericValue);
 		dispatch('change', { value: numericValue });
-		
+
 		clearTimeout(typingTimeout);
 		setTypingStatus(fieldId, false);
 	}
@@ -123,19 +123,19 @@
 
 <div class="relative">
 	{#if hasFocus}
-		<div 
-			class="absolute -inset-1 rounded-lg border-2 pointer-events-none z-10"
+		<div
+			class="pointer-events-none absolute -inset-1 z-10 rounded-lg border-2"
 			style="border-color: {focusRingColor}"
 		>
-			<div 
-				class="absolute -top-6 left-0 px-2 py-1 text-xs font-medium text-white rounded-md shadow-sm whitespace-nowrap"
+			<div
+				class="absolute -top-6 left-0 rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow-sm"
 				style="background-color: {focusRingColor}"
 			>
 				{focusedUser.name} is editing
 			</div>
 		</div>
 	{/if}
-	
+
 	<Input
 		bind:value={displayValue}
 		{placeholder}
@@ -145,7 +145,7 @@
 		{disabled}
 		type="text"
 		inputmode="numeric"
-		class="{hasFocus ? 'ring-0 border-transparent' : ''} {className}"
+		class="{hasFocus ? 'border-transparent ring-0' : ''} {className}"
 		onfocus={handleFocus}
 		onblur={handleBlur}
 		oninput={handleInput}

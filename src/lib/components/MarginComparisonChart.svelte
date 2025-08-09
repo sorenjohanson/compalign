@@ -5,9 +5,7 @@
 		getMarginPosition,
 		getIndustryMarginStats
 	} from '$lib/salary-calculator';
-	import Target from '@lucide/svelte/icons/target';
-	import TrendingUp from '@lucide/svelte/icons/trending-up';
-	import TrendingDown from '@lucide/svelte/icons/trending-down';
+	import { Target, TrendingUp, TrendingDown } from '@lucide/svelte';
 
 	interface Props {
 		benchmarks: IndustryBenchmark[];

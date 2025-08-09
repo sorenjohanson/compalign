@@ -13,9 +13,7 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import Settings from '@lucide/svelte/icons/settings';
-	import Lock from '@lucide/svelte/icons/lock';
-	import Unlock from '@lucide/svelte/icons/unlock';
+	import { Settings, Lock, Unlock } from '@lucide/svelte';
 
 	interface Props {
 		open: boolean;
@@ -36,7 +34,6 @@
 	let targetNetMarginPercent = $state(config.targetNetMargin);
 	let overheadPercent = $state(config.overheadAsPercentOfRevenue * 100);
 
-	// Validate fuzzy hours
 	let fuzzyHoursValidation = $derived(validateFuzzyHours(tempConfig));
 
 	// Calculate utilisation rate from the current config
@@ -57,7 +54,6 @@
 		}
 	});
 
-	// Update tempConfig when percentage inputs change
 	$effect(() => {
 		tempConfig.employerSocialContributionRate = employerRatePercent / 100;
 		tempConfig.targetNetMargin = targetNetMarginPercent;
@@ -72,7 +68,6 @@
 	function handleResetToDefaults() {
 		if (!resetConfirmation) {
 			resetConfirmation = true;
-			// Auto-reset confirmation after 3 seconds
 			setTimeout(() => {
 				resetConfirmation = false;
 			}, 3000);

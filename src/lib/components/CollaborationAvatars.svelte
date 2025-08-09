@@ -2,7 +2,7 @@
 	import * as Avatar from '$lib/components/ui/avatar';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import { totalUsers, isInSession, currentUser } from '$lib/stores/collaboration';
-	import { Wifi, WifiOff } from '@lucide/svelte/icons';
+	import { Wifi, WifiOff } from '@lucide/svelte';
 
 	const visibleUsers = $derived($totalUsers.slice(0, 5));
 	const overflowCount = $derived(Math.max(0, $totalUsers.length - 5));

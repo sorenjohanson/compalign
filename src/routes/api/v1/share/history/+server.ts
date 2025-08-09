@@ -65,22 +65,25 @@
  */
 
 import { json } from '@sveltejs/kit';
+import { isCollaborationApiEnabled } from '$lib/feature-flags.js';
 import type { RequestHandler } from './$types.js';
 
-// Get the single active session
 export const GET: RequestHandler = async ({ url }) => {
+	if (!isCollaborationApiEnabled()) {
+		return json({ error: 'Collaboration features are disabled' }, { status: 404 });
+	}
+
 	try {
-		// Import here to avoid SSR issues
 		const { getActiveSession, generateShareableLink } = await import('$lib/collaboration.js');
-		
+
 		const session = getActiveSession();
-		
+
 		if (!session) {
 			return json({ error: 'No active session found' }, { status: 404 });
 		}
-		
+
 		const shareableLink = generateShareableLink(session.id, url.origin);
-		
+
 		return json({
 			session: {
 				id: session.id,

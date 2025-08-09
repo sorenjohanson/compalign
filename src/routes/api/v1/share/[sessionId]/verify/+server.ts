@@ -109,36 +109,46 @@
 
 import { json } from '@sveltejs/kit';
 import { verifyOTP, getSharedSession } from '$lib/collaboration.js';
+import { isCollaborationApiEnabled } from '$lib/feature-flags.js';
 import type { RequestHandler } from './$types.js';
 
 export const POST: RequestHandler = async ({ params, request }) => {
+	if (!isCollaborationApiEnabled()) {
+		return json({ error: 'Collaboration features are disabled' }, { status: 404 });
+	}
+
 	try {
 		const { sessionId } = params;
 		const { otpCode } = await request.json();
-		
+
 		if (!otpCode) {
 			return json({ error: 'OTP code is required' }, { status: 400 });
 		}
-		
-		// Validate OTP format
+
 		if (!/^[A-Z0-9]{6}$/.test(otpCode.toUpperCase())) {
-			return json({ error: 'OTP code must be 6 characters (letters and numbers)' }, { status: 400 });
+			return json(
+				{ error: 'OTP code must be 6 characters (letters and numbers)' },
+				{ status: 400 }
+			);
 		}
-		
+
 		const isValid = verifyOTP(sessionId, otpCode);
-		
+
 		if (!isValid) {
-			return json({ 
-				error: 'Invalid or expired OTP code. The code rotates every 30 minutes.' 
-			}, { status: 401 });
+			return json(
+				{
+					error: 'Invalid or expired OTP code. The code rotates every 30 minutes.'
+				},
+				{ status: 401 }
+			);
 		}
-		
+
 		const session = getSharedSession(sessionId);
-		
+
 		if (!session) {
 			return json({ error: 'Session not found or expired' }, { status: 404 });
 		}
-		
+
 		return json({
 			valid: true,
 			calculatorData: session.calculatorData

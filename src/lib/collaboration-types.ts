@@ -31,7 +31,11 @@ export interface CollaborationSession {
 
 export interface SocketEvents {
 	// Client -> Server
-	'join-session': (sessionId: string, userData?: Partial<CollaborationUser>, hostProStatus?: boolean) => void;
+	'join-session': (
+		sessionId: string,
+		userData?: Partial<CollaborationUser>,
+		hostProStatus?: boolean
+	) => void;
 	'leave-session': (sessionId: string) => void;
 	'field-focus': (sessionId: string, fieldId: string | null) => void;
 	'field-update': (sessionId: string, fieldId: string, value: any) => void;
@@ -39,7 +43,11 @@ export interface SocketEvents {
 	'user-typing': (sessionId: string, fieldId: string, isTyping: boolean) => void;
 
 	// Server -> Client
-	'session-joined': (user: CollaborationUser, users: CollaborationUser[], hostProStatus: boolean) => void;
+	'session-joined': (
+		user: CollaborationUser,
+		users: CollaborationUser[],
+		hostProStatus: boolean
+	) => void;
 	'user-joined': (user: CollaborationUser) => void;
 	'user-left': (userId: string) => void;
 	'user-updated': (user: CollaborationUser) => void;
@@ -53,7 +61,7 @@ export interface SocketEvents {
 // Predefined user colors (Material Design palette)
 export const USER_COLORS = [
 	'#1976d2', // Blue
-	'#388e3c', // Green  
+	'#388e3c', // Green
 	'#f57c00', // Orange
 	'#7b1fa2', // Purple
 	'#c2185b', // Pink
@@ -61,18 +69,44 @@ export const USER_COLORS = [
 	'#5d4037', // Brown
 	'#424242', // Gray
 	'#e53935', // Red
-	'#fbc02d'  // Yellow
+	'#fbc02d' // Yellow
 ];
 
 // Random name generation
 const ADJECTIVES = [
-	'Creative', 'Brilliant', 'Swift', 'Clever', 'Wise', 'Bold', 'Bright', 
-	'Sharp', 'Quick', 'Smart', 'Eager', 'Active', 'Alert', 'Agile', 'Calm'
+	'Creative',
+	'Brilliant',
+	'Swift',
+	'Clever',
+	'Wise',
+	'Bold',
+	'Bright',
+	'Sharp',
+	'Quick',
+	'Smart',
+	'Eager',
+	'Active',
+	'Alert',
+	'Agile',
+	'Calm'
 ];
 
 const ANIMALS = [
-	'Fox', 'Wolf', 'Bear', 'Eagle', 'Lion', 'Tiger', 'Panda', 'Owl', 
-	'Rabbit', 'Deer', 'Hawk', 'Falcon', 'Leopard', 'Lynx', 'Otter'
+	'Fox',
+	'Wolf',
+	'Bear',
+	'Eagle',
+	'Lion',
+	'Tiger',
+	'Panda',
+	'Owl',
+	'Rabbit',
+	'Deer',
+	'Hawk',
+	'Falcon',
+	'Leopard',
+	'Lynx',
+	'Otter'
 ];
 
 export function generateRandomName(): string {
@@ -83,10 +117,10 @@ export function generateRandomName(): string {
 
 export function getInitials(name: string | null | undefined): string {
 	if (!name) return 'U'; // Default for undefined/null names
-	
+
 	return name
 		.split(' ')
-		.map(word => word[0])
+		.map((word) => word[0])
 		.join('')
 		.toUpperCase()
 		.slice(0, 2);
@@ -102,17 +136,15 @@ export function assignUserColor(existingUsers: CollaborationUser[]): string {
 			console.warn('⚠️ existingUsers is not an array:', existingUsers);
 			return USER_COLORS[0];
 		}
-		
-		const usedColors = existingUsers
-			.filter(user => user && user.color)
-			.map(user => user.color);
-		
-		const availableColors = USER_COLORS.filter(color => !usedColors.includes(color));
-		
+
+		const usedColors = existingUsers.filter((user) => user && user.color).map((user) => user.color);
+
+		const availableColors = USER_COLORS.filter((color) => !usedColors.includes(color));
+
 		if (availableColors.length > 0) {
 			return availableColors[0];
 		}
-		
+
 		// If all colors are used, cycle back
 		return USER_COLORS[existingUsers.length % USER_COLORS.length];
 	} catch (error) {

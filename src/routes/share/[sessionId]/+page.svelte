@@ -5,15 +5,22 @@
 	import * as Alert from '$lib/components/ui/alert';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import Lock from '@lucide/svelte/icons/lock';
-	import Users from '@lucide/svelte/icons/users';
-	import AlertCircle from '@lucide/svelte/icons/alert-circle';
+	import { Lock, Users, AlertCircle } from '@lucide/svelte';
+	import { isCollaborationEnabled } from '$lib/feature-flags';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 
 	let otpValue = $state('');
 	let isVerifying = $state(false);
 	let error = $state('');
-	
+
 	const sessionId = $page.params.sessionId as string;
+
+	onMount(() => {
+		if (browser && !isCollaborationEnabled()) {
+			goto('/');
+		}
+	});
 
 	async function handleVerifyOTP() {
 		if (otpValue.length !== 6) {
@@ -35,7 +42,9 @@
 
 			if (!response.ok) {
 				if (response.status === 401) {
-					error = result.error || 'Invalid or expired access code. The code may have rotated - please get a fresh one.';
+					error =
+						result.error ||
+						'Invalid or expired access code. The code may have rotated - please get a fresh one.';
 				} else {
 					error = result.error || 'Verification failed';
 				}
@@ -43,7 +52,6 @@
 			}
 
 			if (result.valid) {
-				// Store the calculator data and redirect to collaborative calculator
 				localStorage.setItem('shared-calculator-data', JSON.stringify(result.calculatorData));
 				localStorage.setItem('is-shared-session', 'true');
 				localStorage.setItem('collaboration-session-id', sessionId);
@@ -62,7 +70,6 @@
 		}
 	}
 
-	// Auto-capitalize otpValue when it changes
 	$effect(() => {
 		if (otpValue) {
 			const capitalizedValue = otpValue.toUpperCase();
@@ -73,22 +80,27 @@
 	});
 </script>
 
-<div class="min-h-screen bg-gray-100 flex items-center justify-center px-4 dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-800">
+<div
+	class="flex min-h-screen items-center justify-center bg-gray-100 px-4 dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-800"
+>
 	<div class="w-full max-w-md">
 		<Card.Root>
 			<Card.Header class="text-center">
-				<div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50">
+				<div
+					class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50"
+				>
 					<Users class="h-6 w-6 text-blue-600 dark:text-blue-300" />
 				</div>
 				<Card.Title class="text-2xl">Join Shared Calculator</Card.Title>
 				<Card.Description>
-					Enter the 6-character access code to view the shared salary calculation (letters will be automatically capitalized)
+					Enter the 6-character access code to view the shared salary calculation (letters will be
+					automatically capitalized)
 				</Card.Description>
 			</Card.Header>
 			<Card.Content class="space-y-6">
 				<div class="flex flex-col items-center space-y-4">
-					<InputOTP.Root 
-						bind:value={otpValue} 
+					<InputOTP.Root
+						bind:value={otpValue}
 						maxlength={6}
 						onComplete={handleComplete}
 						class="space-x-2 [&_input]:uppercase [&_input]:placeholder-gray-400"
@@ -116,8 +128,8 @@
 						</Alert.Root>
 					{/if}
 
-					<Button 
-						onclick={handleVerifyOTP} 
+					<Button
+						onclick={handleVerifyOTP}
 						disabled={otpValue.length !== 6 || isVerifying}
 						class="w-full"
 					>

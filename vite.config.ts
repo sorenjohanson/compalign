@@ -8,17 +8,24 @@ function socketIOPlugin() {
 		name: 'socket-io',
 		configureServer(server: any) {
 			if (!server.httpServer) return;
-			
-			// Import and setup Socket.IO server
-			import('./src/lib/server/collaboration-server.js').then(({ setupCollaborationServer }) => {
-				const io = setupCollaborationServer(server.httpServer);
-				console.log('Socket.IO server initialized in development mode');
-				
-				// Store io instance globally for access in API routes
-				(globalThis as any)._socketIO = io;
-			}).catch((error: any) => {
-				console.error('Failed to setup Socket.IO server:', error);
-			});
+
+			// Only initialize Socket.IO when explicitly enabled via env var
+			const shouldEnableSocketIO = process.env.ENABLE_SOCKET_IO === 'true';
+			if (!shouldEnableSocketIO) {
+				console.log('Socket.IO is disabled via ENABLE_SOCKET_IO env var');
+				return;
+			}
+
+			import('./src/lib/server/collaboration-server.js')
+				.then(({ setupCollaborationServer }) => {
+					const io = setupCollaborationServer(server.httpServer);
+					console.log('Socket.IO server initialized in development mode');
+
+					(globalThis as any)._socketIO = io;
+				})
+				.catch((error: any) => {
+					console.error('Failed to setup Socket.IO server:', error);
+				});
 		}
 	};
 }

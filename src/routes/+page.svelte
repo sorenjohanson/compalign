@@ -28,29 +28,36 @@
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Alert from '$lib/components/ui/alert/index.js';
-	import Settings from '@lucide/svelte/icons/settings';
-	import Share2 from '@lucide/svelte/icons/share-2';
-	import Calculator from '@lucide/svelte/icons/calculator';
-	import TrendingUp from '@lucide/svelte/icons/trending-up';
-	import Euro from '@lucide/svelte/icons/euro';
-	import Clock from '@lucide/svelte/icons/clock';
-	import Users from '@lucide/svelte/icons/users';
-	import Info from '@lucide/svelte/icons/info';
-	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import ArrowDownRight from '@lucide/svelte/icons/arrow-down-right';
-	import ArrowRight from '@lucide/svelte/icons/arrow-right';
-	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
-	import Target from '@lucide/svelte/icons/target';
-	import Calendar from '@lucide/svelte/icons/calendar';
-	import Lock from '@lucide/svelte/icons/lock';
+	import {
+		Settings,
+		Share2,
+		Calculator,
+		TrendingUp,
+		Euro,
+		Clock,
+		Users,
+		Info,
+		ArrowUpRight,
+		ArrowDownRight,
+		ArrowRight,
+		BarChart3,
+		Target,
+		Calendar,
+		Lock
+	} from '@lucide/svelte';
 	import DarkModeToggle from '$lib/components/DarkModeToggle.svelte';
 	import CollaborationAvatars from '$lib/components/CollaborationAvatars.svelte';
-	import { initializeCollaboration, joinSession, isInSession, effectiveProStatus } from '$lib/stores/collaboration';
+	import {
+		initializeCollaboration,
+		joinSession,
+		isInSession,
+		effectiveProStatus
+	} from '$lib/stores/collaboration';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
+	import { isCollaborationEnabled } from '$lib/feature-flags';
 
-	// Load persisted values or use defaults
 	const savedInputs = loadInputValuesFromStorage();
 	let grossSalary = $state(savedInputs.grossSalary);
 	let customerRate = $state(savedInputs.customerRate);
@@ -63,12 +70,10 @@
 	let showSharedAlert = $state(false);
 	let currentSessionId = $state<string | null>(null);
 
-	// Save input values to localStorage when they change
 	$effect(() => {
 		saveInputValuesToStorage({ grossSalary, customerRate });
 	});
 
-	// Update Pro status when effective Pro status changes
 	$effect(() => {
 		isProEnabled = $effectiveProStatus;
 	});
@@ -100,14 +105,12 @@
 
 	function handleShareOpen() {
 		showShareDialog = true;
-		// Initialize collaboration when user intends to share
 		initializeCollaborationIfNeeded();
 	}
 
-	// Handle field updates from collaborators
 	function handleCollaborationFieldUpdate(event: CustomEvent) {
 		const { fieldId, value, userId } = event.detail;
-		
+
 		switch (fieldId) {
 			case 'grossSalary':
 				grossSalary = value;
@@ -118,33 +121,31 @@
 		}
 	}
 
-	// Initialize collaboration only when needed
 	function initializeCollaborationIfNeeded() {
 		if (!browser) return;
-		
-		// Initialize collaboration
+
 		initializeCollaboration();
-		
-		// Listen for collaboration field updates
-		window.addEventListener('collaboration-field-update', handleCollaborationFieldUpdate as EventListener);
+
+		window.addEventListener(
+			'collaboration-field-update',
+			handleCollaborationFieldUpdate as EventListener
+		);
 	}
 
-	// Handle shared session data on mount
 	onMount(() => {
 		if (browser) {
-			// Check for collaboration session
 			const urlParams = new URLSearchParams(window.location.search);
 			const isShared = urlParams.has('shared');
 			const sessionId = urlParams.get('sessionId');
 			const storedSessionId = localStorage.getItem('collaboration-session-id');
-			
+
 			// Only initialize if we have a shared session context
 			if (isShared) {
 				initializeCollaborationIfNeeded();
-				
+
 				const sharedData = localStorage.getItem('shared-calculator-data');
 				const isSharedFlag = localStorage.getItem('is-shared-session');
-				
+
 				if (sharedData && isSharedFlag) {
 					try {
 						const data = JSON.parse(sharedData);
@@ -153,43 +154,43 @@
 						config = { ...config, ...data.config };
 						isSharedSession = true;
 						showSharedAlert = true;
-						
+
 						// Use sessionId from URL or fallback to stored one
 						const collaborationSessionId = sessionId || storedSessionId;
 						if (collaborationSessionId) {
 							currentSessionId = collaborationSessionId;
 							console.log('Joining collaboration session:', collaborationSessionId);
-							
+
 							// Small delay to ensure Socket.IO is initialized
 							setTimeout(() => {
 								console.log('Attempting to join session with delay:', collaborationSessionId);
 								joinSession(collaborationSessionId);
 							}, 1000);
 						}
-						
-						// Clean up temporary data but keep collaboration session ID
+
 						localStorage.removeItem('shared-calculator-data');
 						localStorage.removeItem('is-shared-session');
-						
+
 						// Delay URL cleaning to ensure session join happens first
 						setTimeout(() => {
 							console.log('Cleaning URL after session join attempt');
 							window.history.replaceState({}, '', window.location.pathname);
 						}, 2000);
-						
-						// Hide alert after 5 seconds
-						setTimeout(() => showSharedAlert = false, 5000);
+
+						setTimeout(() => (showSharedAlert = false), 5000);
 					} catch (err) {
 						console.error('Error loading shared data:', err);
 					}
 				}
 			}
 		}
-		
-		// Cleanup function
+
 		return () => {
 			if (browser) {
-				window.removeEventListener('collaboration-field-update', handleCollaborationFieldUpdate as EventListener);
+				window.removeEventListener(
+					'collaboration-field-update',
+					handleCollaborationFieldUpdate as EventListener
+				);
 			}
 		};
 	});
@@ -203,7 +204,7 @@
 		<div class="mb-6 text-center sm:mb-8">
 			<div class="mb-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
 				<div class="flex flex-1 items-center justify-start">
-					{#if $isInSession}
+					{#if isCollaborationEnabled() && $isInSession}
 						<CollaborationAvatars />
 					{/if}
 				</div>
@@ -219,15 +220,17 @@
 				</div>
 				<div class="flex flex-1 items-center justify-end gap-2">
 					<DarkModeToggle />
-					<Button
-						variant="outline"
-						size="sm"
-						onclick={handleShareOpen}
-						class="flex items-center gap-2"
-					>
-						<Share2 class="h-4 w-4" />
-						<span class="hidden sm:inline">Share</span>
-					</Button>
+					{#if isCollaborationEnabled()}
+						<Button
+							variant="outline"
+							size="sm"
+							onclick={handleShareOpen}
+							class="flex items-center gap-2"
+						>
+							<Share2 class="h-4 w-4" />
+							<span class="hidden sm:inline">Share</span>
+						</Button>
+					{/if}
 					<Button
 						variant="outline"
 						size="sm"
@@ -247,7 +250,8 @@
 				<Alert.Root class="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
 					<Users class="h-4 w-4" />
 					<Alert.Description>
-						You're now viewing a shared salary calculation. The values have been loaded automatically.
+						You're now viewing a shared salary calculation. The values have been loaded
+						automatically.
 					</Alert.Description>
 				</Alert.Root>
 			</div>
@@ -267,11 +271,7 @@
 						<div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:space-x-3">
 							<div class="flex items-center space-x-2">
 								<span class="text-xs text-muted-foreground/60 sm:text-sm">Employee</span>
-								<Switch
-									bind:checked={isFreelancerMode}
-									disabled
-									class="opacity-50"
-								/>
+								<Switch bind:checked={isFreelancerMode} disabled class="opacity-50" />
 								<span class="text-xs text-muted-foreground/60 sm:text-sm">Freelancer</span>
 							</div>
 							<Badge
@@ -286,7 +286,7 @@
 				</Card.Header>
 				<Card.Content>
 					<div class="space-y-2">
-						{#if $isInSession}
+						{#if isCollaborationEnabled() && $isInSession}
 							<CollaborativeFormattedNumberInput
 								fieldId="grossSalary"
 								bind:value={grossSalary}
@@ -318,7 +318,7 @@
 				</Card.Header>
 				<Card.Content>
 					<div class="space-y-2">
-						{#if $isInSession}
+						{#if isCollaborationEnabled() && $isInSession}
 							<CollaborativeFormattedNumberInput
 								fieldId="customerRate"
 								bind:value={customerRate}

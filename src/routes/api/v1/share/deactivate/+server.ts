@@ -32,12 +32,17 @@
 
 import { json } from '@sveltejs/kit';
 import { deactivateSession } from '$lib/collaboration.js';
+import { isCollaborationApiEnabled } from '$lib/feature-flags.js';
 import type { RequestHandler } from './$types.js';
 
 export const POST: RequestHandler = async () => {
+	if (!isCollaborationApiEnabled()) {
+		return json({ error: 'Collaboration features are disabled' }, { status: 404 });
+	}
+
 	try {
 		deactivateSession();
-		
+
 		return json({ success: true });
 	} catch (error) {
 		console.error('Error deactivating session:', error);
