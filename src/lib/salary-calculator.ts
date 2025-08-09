@@ -1,32 +1,23 @@
-// German Salary Negotiation Calculator Logic
-// For use in Svelte 5 component
-
 export interface SalaryCalculation {
-	// Input values
 	grossSalaryAnnual: number;
 	customerHourlyRate: number;
 
-	// Time calculations
 	workingDaysPerYear: number;
 	billableHoursPerYear: number;
 	totalHoursPerYear: number;
 
-	// Cost breakdown
 	employerSocialContributions: number;
 	totalEmployerCosts: number;
 
-	// Rate calculations
 	employeeHourlyRate: number;
 	employerCostHourlyRate: number;
 
-	// Revenue and margins
 	annualRevenue: number;
 	grossMargin: number;
 	grossMarginPercentage: number;
 	netMargin: number;
 	netMarginPercentage: number;
 
-	// Utilisation and fuzzy costs
 	utilisationRate: number;
 	realBillableHoursPerYear: number;
 	fuzzyCostBreakdown: {
@@ -37,33 +28,28 @@ export interface SalaryCalculation {
 		totalFuzzyCostValue: number;
 	};
 
-	// Breakdowns
 	nonBillableTimeValue: number;
 	employerContributionValue: number;
 	overheadCosts: number;
 }
 
 export interface CalculatorConfig {
-	// German employment defaults
-	employerSocialContributionRate: number; // 20% employer social contributions
-	vacationDays: number; // 30 days vacation
-	sickDaysEstimate: number; // Estimated sick days per year
-	trainingDays: number; // Internal training/development days
-	publicHolidays: number; // German public holidays (varies by state, ~10-13)
-	workingDaysPerWeek: number; // 5 days
-	hoursPerWorkingDay: number; // 8 hours
+	employerSocialContributionRate: number;
+	vacationDays: number;
+	sickDaysEstimate: number;
+	trainingDays: number;
+	publicHolidays: number;
+	workingDaysPerWeek: number;
+	hoursPerWorkingDay: number;
 
-	// Real-world non-billable work (utilisation calculated from these)
-	salesDemosHours: number; // Hours per week on sales demos
-	internalMeetingsHours: number; // Hours per week on internal meetings
-	adminTasksHours: number; // Hours per week on admin/paperwork
-	businessDevelopmentHours: number; // Hours per week on BD activities
+	salesDemosHours: number;
+	internalMeetingsHours: number;
+	adminTasksHours: number;
+	businessDevelopmentHours: number;
 
-	// Target margin for negotiation positioning
-	targetNetMargin: number; // Target company net margin percentage for negotiations
+	targetNetMargin: number;
 
-	// Overhead costs
-	overheadAsPercentOfRevenue: number; // Overhead costs as percentage of revenue (office, admin, etc.)
+	overheadAsPercentOfRevenue: number;
 }
 
 export const defaultConfig: CalculatorConfig = {
@@ -88,7 +74,6 @@ export const defaultConfig: CalculatorConfig = {
 	overheadAsPercentOfRevenue: 0.15 // 15% of revenue goes to overhead costs
 };
 
-// localStorage utilities for settings persistence
 const SETTINGS_STORAGE_KEY = 'salary-calculator-settings';
 const INPUT_VALUES_STORAGE_KEY = 'salary-calculator-inputs';
 
@@ -108,7 +93,6 @@ export function loadSettingsFromStorage(): CalculatorConfig {
 			const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
 			if (stored) {
 				const parsed = JSON.parse(stored) as CalculatorConfig;
-				// Validate that all required properties exist, merge with defaults for missing ones
 				return {
 					...defaultConfig,
 					...parsed
@@ -131,7 +115,6 @@ export function clearSettingsFromStorage(): void {
 	}
 }
 
-// Input values persistence
 export interface InputValues {
 	grossSalary: number;
 	customerRate: number;
@@ -175,9 +158,8 @@ export function calculateSalaryBreakdown(
 	customerHourlyRate: number,
 	config: CalculatorConfig = defaultConfig
 ): SalaryCalculation {
-	// Calculate working days and hours
 	const totalCalendarDays = 365;
-	const weekends = 52 * 2; // 104 weekend days
+	const weekends = 52 * 2;
 	const potentialWorkingDays = totalCalendarDays - weekends;
 
 	const nonWorkingDays =
@@ -186,7 +168,6 @@ export function calculateSalaryBreakdown(
 	const workingDaysPerYear = potentialWorkingDays - nonWorkingDays;
 	const totalHoursPerYear = workingDaysPerYear * config.hoursPerWorkingDay;
 
-	// Calculate weekly fuzzy hours and validate
 	const workingWeeksPerYear = Math.floor(workingDaysPerYear / 5);
 	const maxWeeklyHours = config.workingDaysPerWeek * config.hoursPerWorkingDay;
 	const totalFuzzyHoursPerWeek =
@@ -195,28 +176,22 @@ export function calculateSalaryBreakdown(
 		config.adminTasksHours +
 		config.businessDevelopmentHours;
 
-	// Ensure fuzzy hours don't exceed weekly total
 	const validatedFuzzyHours = Math.min(totalFuzzyHoursPerWeek, maxWeeklyHours);
 	const fuzzyHoursRatio =
 		validatedFuzzyHours > 0 ? validatedFuzzyHours / totalFuzzyHoursPerWeek : 1;
 
-	// Scale down individual fuzzy hours proportionally if they exceed the limit
 	const adjustedSalesDemosHours = config.salesDemosHours * fuzzyHoursRatio;
 	const adjustedInternalMeetingsHours = config.internalMeetingsHours * fuzzyHoursRatio;
 	const adjustedAdminTasksHours = config.adminTasksHours * fuzzyHoursRatio;
 	const adjustedBusinessDevelopmentHours = config.businessDevelopmentHours * fuzzyHoursRatio;
 
-	// Calculate billable hours after deducting non-billable work
 	const weeklyBillableHours = maxWeeklyHours - validatedFuzzyHours;
 	const realBillableHoursPerYear = weeklyBillableHours * workingWeeksPerYear;
 
-	// Calculate utilisation rate from actual non-billable work
 	const utilisationRate = totalHoursPerYear > 0 ? realBillableHoursPerYear / totalHoursPerYear : 0;
 
-	// For backwards compatibility, also calculate theoretical max billable hours
 	const billableHoursPerYear = workingDaysPerYear * config.hoursPerWorkingDay;
 
-	// Calculate fuzzy cost breakdown using adjusted hours
 	const salesDemosAnnual = adjustedSalesDemosHours * workingWeeksPerYear;
 	const internalMeetingsAnnual = adjustedInternalMeetingsHours * workingWeeksPerYear;
 	const adminTasksAnnual = adjustedAdminTasksHours * workingWeeksPerYear;
@@ -248,28 +223,22 @@ export function calculateSalaryBreakdown(
 			customerHourlyRate
 	};
 
-	// Employer costs
 	const employerSocialContributions = grossSalaryAnnual * config.employerSocialContributionRate;
 	const totalEmployerCosts = grossSalaryAnnual + employerSocialContributions;
 
-	// Hourly rates
 	const employeeHourlyRate = grossSalaryAnnual / totalHoursPerYear;
 	const employerCostHourlyRate = totalEmployerCosts / totalHoursPerYear;
 
-	// Revenue calculations using real billable hours
 	const annualRevenue = realBillableHoursPerYear * customerHourlyRate;
 
-	// Overhead costs
 	const overheadCosts = annualRevenue * config.overheadAsPercentOfRevenue;
 
-	// Margin calculations
 	const grossMargin = annualRevenue - grossSalaryAnnual;
 	const grossMarginPercentage = annualRevenue > 0 ? (grossMargin / annualRevenue) * 100 : 0;
 
 	const netMargin = annualRevenue - totalEmployerCosts - overheadCosts;
 	const netMarginPercentage = annualRevenue > 0 ? (netMargin / annualRevenue) * 100 : 0;
 
-	// Value of non-billable time and employer contributions
 	const nonBillableHours = totalHoursPerYear - realBillableHoursPerYear;
 	const nonBillableTimeValue = nonBillableHours * customerHourlyRate;
 	const employerContributionValue = employerSocialContributions;
@@ -298,7 +267,6 @@ export function calculateSalaryBreakdown(
 	};
 }
 
-// Utility function to format currency
 export function formatCurrency(amount: number): string {
 	return new Intl.NumberFormat('de-DE', {
 		style: 'currency',
@@ -308,12 +276,10 @@ export function formatCurrency(amount: number): string {
 	}).format(amount);
 }
 
-// Utility function to format percentage
 export function formatPercentage(percentage: number): string {
 	return `${percentage.toFixed(1)}%`;
 }
 
-// Function to analyse different salary scenarios
 export function analyseSalaryScenarios(
 	salaryOptions: number[],
 	customerHourlyRate: number,
@@ -324,12 +290,10 @@ export function analyseSalaryScenarios(
 	);
 }
 
-// Function to find break-even salary (where net margin = 0)
 export function findBreakEvenSalary(
 	customerHourlyRate: number,
 	config: CalculatorConfig = defaultConfig
 ): number {
-	// Binary search for break-even point
 	let low = 30000;
 	let high = 200000;
 	let tolerance = 100;
@@ -348,7 +312,6 @@ export function findBreakEvenSalary(
 	return (low + high) / 2;
 }
 
-// Analysis helper for negotiation insights
 export interface NegotiationInsight {
 	category: string;
 	description: string;
@@ -356,7 +319,6 @@ export interface NegotiationInsight {
 	impact: 'positive' | 'negative' | 'neutral';
 }
 
-// Industry benchmark data for margin comparisons
 export interface IndustryBenchmark {
 	category: string;
 	netMarginRange: { min: number; max: number };
@@ -404,14 +366,12 @@ export interface MarginComparison {
 	recommendations: string[];
 }
 
-// Strategic insights for financial analysis (non-duplicative)
 export function generateStrategicInsights(
 	calculation: SalaryCalculation,
 	config: CalculatorConfig
 ): NegotiationInsight[] {
 	const insights: NegotiationInsight[] = [];
 
-	// Utilisation efficiency analysis
 	const utilisationGap = (1 - calculation.utilisationRate) * calculation.totalHoursPerYear;
 	insights.push({
 		category: 'Utilisation Efficiency',
@@ -425,7 +385,6 @@ export function generateStrategicInsights(
 					: 'negative'
 	});
 
-	// Revenue multiplier analysis
 	const revenueMultiplier = calculation.annualRevenue / calculation.grossSalaryAnnual;
 	insights.push({
 		category: 'Revenue Multiplier',
@@ -434,7 +393,6 @@ export function generateStrategicInsights(
 		impact: revenueMultiplier >= 3 ? 'positive' : revenueMultiplier >= 2 ? 'neutral' : 'negative'
 	});
 
-	// Target margin performance with tolerance
 	const marginGap = calculation.netMarginPercentage - config.targetNetMargin;
 	const marginStatus = getMarginStatus(calculation.netMarginPercentage, config.targetNetMargin);
 
@@ -459,7 +417,6 @@ export function generateStrategicInsights(
 		impact
 	});
 
-	// Break-even analysis
 	const breakEvenRevenue = calculation.totalEmployerCosts;
 	const breakEvenHours = Math.ceil(breakEvenRevenue / calculation.customerHourlyRate);
 	insights.push({
@@ -469,7 +426,6 @@ export function generateStrategicInsights(
 		impact: breakEvenHours <= calculation.realBillableHoursPerYear ? 'positive' : 'negative'
 	});
 
-	// Profit per hour analysis
 	const profitPerHour = calculation.netMargin / calculation.totalHoursPerYear;
 	insights.push({
 		category: 'Profit Per Hour',
@@ -481,7 +437,6 @@ export function generateStrategicInsights(
 	return insights;
 }
 
-// Helper function to get industry low, average, and high values
 export function getIndustryMarginStats() {
 	const allMins = industryBenchmarks.map((b) => b.netMarginRange.min);
 	const allMaxs = industryBenchmarks.map((b) => b.netMarginRange.max);
@@ -494,7 +449,6 @@ export function getIndustryMarginStats() {
 	};
 }
 
-// Function to determine margin status relative to target with tolerance
 export function getMarginStatus(
 	actualMargin: number,
 	targetMargin: number,
@@ -511,7 +465,6 @@ export function getMarginStatus(
 	}
 }
 
-// Function to determine margin position relative to industry standards
 export function getMarginPosition(
 	netMarginPercentage: number
 ): 'below_low' | 'average' | 'above_high' {
@@ -526,7 +479,6 @@ export function getMarginPosition(
 	}
 }
 
-// Function to validate fuzzy hours configuration
 export function validateFuzzyHours(config: CalculatorConfig): {
 	isValid: boolean;
 	totalFuzzyHours: number;
@@ -549,12 +501,10 @@ export function validateFuzzyHours(config: CalculatorConfig): {
 	};
 }
 
-// Function to compare margins with industry benchmarks
 export function generateMarginComparison(calculation: SalaryCalculation): MarginComparison {
 	const yourNetMargin = calculation.netMarginPercentage;
 	const yourGrossMargin = calculation.grossMarginPercentage;
 
-	// Find the closest industry benchmark
 	let closestBenchmark = industryBenchmarks[0];
 	let minDistance = Math.abs(
 		yourNetMargin - (closestBenchmark.netMarginRange.min + closestBenchmark.netMarginRange.max) / 2
@@ -569,7 +519,6 @@ export function generateMarginComparison(calculation: SalaryCalculation): Margin
 		}
 	}
 
-	// Determine position relative to industry standards (updated to use overall industry range)
 	const { industryLow, industryHigh } = getIndustryMarginStats();
 	let industryPosition: 'below' | 'within' | 'above';
 	if (yourNetMargin < industryLow) {
@@ -580,7 +529,6 @@ export function generateMarginComparison(calculation: SalaryCalculation): Margin
 		industryPosition = 'within';
 	}
 
-	// Generate recommendations based on position
 	const recommendations: string[] = [];
 
 	if (industryPosition === 'above') {
@@ -620,7 +568,6 @@ export function generateMarginComparison(calculation: SalaryCalculation): Margin
 	};
 }
 
-// Pro features management
 const PRO_STORAGE_KEY = 'salary_calculator_pro';
 
 export function isProUnlocked(): boolean {

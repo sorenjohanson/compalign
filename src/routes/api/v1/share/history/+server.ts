@@ -5,7 +5,7 @@
  *     tags:
  *       - Collaboration
  *     summary: Get current active session
- *     description: Retrieves the currently active shared calculator session, if any. Only one session can be active at a time.
+ *     description: Retrieves the currently active shared CompAlign session.
  *     responses:
  *       200:
  *         description: Successfully retrieved session information
@@ -15,36 +15,43 @@
  *               type: object
  *               properties:
  *                 session:
- *                   oneOf:
- *                     - type: 'null'
- *                       description: No active session
- *                     - type: object
- *                       description: Active session details
- *                       properties:
- *                         id:
- *                           type: string
- *                           description: Unique session identifier
- *                           example: "abc123def456"
- *                         otpCode:
- *                           type: string
- *                           description: Current 6-character access code
- *                           pattern: "^[A-Z0-9]{6}$"
- *                           example: "ABC123"
- *                         createdAt:
- *                           type: string
- *                           format: date-time
- *                           description: When session was initially created
- *                           example: "2024-01-15T14:00:00Z"
- *                         otpExpiresAt:
- *                           type: string
- *                           format: date-time
- *                           description: When current OTP expires (30 min from last rotation)
- *                           example: "2024-01-15T14:30:00Z"
- *                         shareableLink:
- *                           type: string
- *                           format: uri
- *                           description: Complete URL for sharing
- *                           example: "https://app.example.com/share/abc123def456"
+ *                   type: object
+ *                   description: Active session details
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: Unique session identifier
+ *                       example: "abc123def456"
+ *                     otpCode:
+ *                       type: string
+ *                       description: Current 6-character access code
+ *                       pattern: "^[A-Z0-9]{6}$"
+ *                       example: "ABC123"
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       description: When session was initially created
+ *                       example: "2024-01-15T14:00:00Z"
+ *                     otpExpiresAt:
+ *                       type: string
+ *                       format: date-time
+ *                       description: When current OTP expires (30 min from last rotation)
+ *                       example: "2024-01-15T14:30:00Z"
+ *                     shareableLink:
+ *                       type: string
+ *                       format: uri
+ *                       description: Complete URL for sharing
+ *                       example: "https://app.example.com/share/abc123def456"
+ *       404:
+ *         description: No active session found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "No active session found"
  *       500:
  *         description: Internal server error
  *         content:
@@ -69,7 +76,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		const session = getActiveSession();
 		
 		if (!session) {
-			return json({ session: null });
+			return json({ error: 'No active session found' }, { status: 404 });
 		}
 		
 		const shareableLink = generateShareableLink(session.id, url.origin);

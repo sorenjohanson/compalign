@@ -1,27 +1,23 @@
-// Client-side collaboration store
 import { writable, derived, get } from 'svelte/store';
 import { io, type Socket } from 'socket.io-client';
 import type { 
 	CollaborationUser, 
-	FieldFocus, 
 	SocketEvents 
-} from '../collaboration-types.js';
-import { generateUserId } from '../collaboration-types.js';
+} from '../collaboration-types';
 import { browser } from '$app/environment';
+import { isProUnlocked } from '$lib/salary-calculator';
 
-// Collaboration state
 export const isConnected = writable(false);
 export const currentUser = writable<CollaborationUser | null>(null);
 export const collaborators = writable<CollaborationUser[]>([]);
 export const fieldFocuses = writable<Record<string, CollaborationUser>>({});
 export const typingUsers = writable<Record<string, string[]>>({});
 export const connectionError = writable<string | null>(null);
+export const hostProStatus = writable<boolean>(false);
 
-// Socket instance
 let socket: Socket<SocketEvents> | null = null;
 let currentSessionId: string | null = null;
 
-// Initialize Socket.IO connection
 export function initializeCollaboration() {
 	if (!browser || socket) {
 		console.log('Collaboration already initialized or not in browser');
@@ -31,12 +27,13 @@ export function initializeCollaboration() {
 	console.log('Initializing Socket.IO client...');
 	socket = io({
 		transports: ['websocket', 'polling'],
-		autoConnect: true,
+		autoConnect: false,
 		reconnection: true,
 		timeout: 10000
 	});
 
-	// Connection events
+	socket.connect();
+
 	socket.on('connect', () => {
 		console.log('Connected to collaboration server');
 		isConnected.set(true);
@@ -57,11 +54,11 @@ export function initializeCollaboration() {
 		connectionError.set('Failed to connect to collaboration server');
 	});
 
-	// Collaboration events
-	socket.on('session-joined', (user, users) => {
-		console.log('✅ Successfully joined session as:', user.name, 'Session has', users.length, 'total users');
+	socket.on('session-joined', (user, users, sessionHostProStatus) => {
+		console.log('✅ Successfully joined session as:', user.name, 'Session has', users.length, 'total users', 'Host Pro:', sessionHostProStatus);
 		currentUser.set(user);
 		collaborators.set(users.filter(u => u.id !== user.id));
+		hostProStatus.set(sessionHostProStatus);
 	});
 
 	socket.on('user-joined', (user) => {
@@ -69,10 +66,8 @@ export function initializeCollaboration() {
 		collaborators.update(users => {
 			const existing = users.find(u => u.id === user.id);
 			if (existing) {
-				// Update existing user
 				return users.map(u => u.id === user.id ? user : u);
 			} else {
-				// Add new user
 				return [...users, user];
 			}
 		});
@@ -82,7 +77,6 @@ export function initializeCollaboration() {
 		console.log('User left:', userId);
 		collaborators.update(users => users.filter(u => u.id !== userId));
 		
-		// Remove their field focuses
 		fieldFocuses.update(focuses => {
 			const updated = { ...focuses };
 			Object.keys(updated).forEach(fieldId => {
@@ -93,7 +87,6 @@ export function initializeCollaboration() {
 			return updated;
 		});
 
-		// Remove from typing indicators
 		typingUsers.update(typing => {
 			const updated = { ...typing };
 			Object.keys(updated).forEach(fieldId => {
@@ -108,19 +101,17 @@ export function initializeCollaboration() {
 
 	socket.on('field-focused', (fieldId, user) => {
 		const currentUserData = get(currentUser);
-		if (currentUserData && user.id === currentUserData.id) return; // Ignore own events
+		if (currentUserData && user.id === currentUserData.id) return;
 		
 		fieldFocuses.update(focuses => {
 			const updated = { ...focuses };
 			
-			// Remove user's previous focus
 			Object.keys(updated).forEach(key => {
 				if (updated[key].id === user.id) {
 					delete updated[key];
 				}
 			});
 			
-			// Add new focus if fieldId is provided
 			if (fieldId) {
 				updated[fieldId] = user;
 			}
@@ -131,11 +122,10 @@ export function initializeCollaboration() {
 
 	socket.on('field-updated', (fieldId, value, userId) => {
 		const currentUserData = get(currentUser);
-		if (currentUserData && userId === currentUserData.id) return; // Ignore own updates
+		if (currentUserData && userId === currentUserData.id) return;
 		
 		console.log('Field updated:', fieldId, value, 'by user:', userId);
 		
-		// Dispatch custom event for components to handle
 		if (typeof window !== 'undefined') {
 			window.dispatchEvent(new CustomEvent('collaboration-field-update', {
 				detail: { fieldId, value, userId }
@@ -144,8 +134,7 @@ export function initializeCollaboration() {
 	});
 
 	socket.on('settings-updated', (config, userId) => {
-		// This will be handled by the settings component
-		console.log('Settings updated by user:', userId);
+		console.log('Settings updated by user:', userId, 'Config:', config);
 	});
 
 	socket.on('user-typing-status', (fieldId, userId, isTyping) => {
@@ -180,31 +169,30 @@ export function initializeCollaboration() {
 	return socket;
 }
 
-// Join a collaboration session
-export function joinSession(sessionId: string, userData?: Partial<CollaborationUser>) {
+export function joinSession(sessionId: string, userData?: Partial<CollaborationUser>, isHost: boolean = false) {
 	if (!socket) {
 		console.error('Socket not initialized when trying to join session');
 		return false;
 	}
 	
-	console.log('Attempting to join session:', sessionId, 'Socket connected:', socket.connected);
+	console.log('Attempting to join session:', sessionId, 'Socket connected:', socket.connected, 'Is host:', isHost);
 	currentSessionId = sessionId;
 	
-	// If socket is already connected, emit immediately
+	const hostProStatusValue = isHost ? isProUnlocked() : false;
+	console.log('Host Pro status:', hostProStatusValue, 'isHost:', isHost);
+	
 	if (socket.connected) {
-		socket.emit('join-session', sessionId, userData);
+		socket.emit('join-session', sessionId, userData, hostProStatusValue);
 	} else {
-		// Wait for connection before emitting
 		socket.once('connect', () => {
 			console.log('Socket connected, now joining session:', sessionId);
-			socket!.emit('join-session', sessionId, userData);
+			socket!.emit('join-session', sessionId, userData, hostProStatusValue);
 		});
 	}
 	
 	return true;
 }
 
-// Leave current session
 export function leaveSession() {
 	if (!socket || !currentSessionId) return;
 	
@@ -214,37 +202,33 @@ export function leaveSession() {
 	collaborators.set([]);
 	fieldFocuses.set({});
 	typingUsers.set({});
+	hostProStatus.set(false);
 }
 
-// Focus on a field
 export function focusField(fieldId: string | null) {
 	if (!socket || !currentSessionId) return;
 	
 	socket.emit('field-focus', currentSessionId, fieldId);
 }
 
-// Update field value
 export function updateField(fieldId: string, value: any) {
 	if (!socket || !currentSessionId) return;
 	
 	socket.emit('field-update', currentSessionId, fieldId, value);
 }
 
-// Update settings
 export function updateSettings(config: any) {
 	if (!socket || !currentSessionId) return;
 	
 	socket.emit('settings-update', currentSessionId, config);
 }
 
-// Set typing status
 export function setTypingStatus(fieldId: string, isTyping: boolean) {
 	if (!socket || !currentSessionId) return;
 	
 	socket.emit('user-typing', currentSessionId, fieldId, isTyping);
 }
 
-// Derived stores
 export const totalUsers = derived(
 	[currentUser, collaborators],
 	([current, collaborators]) => current ? [current, ...collaborators] : collaborators
@@ -255,7 +239,18 @@ export const isInSession = derived(
 	([user, connected]) => !!(user && connected)
 );
 
-// Cleanup
+export const effectiveProStatus = derived(
+	[hostProStatus],
+	([hostPro]) => {
+		let localPro = false;
+		if (browser) {
+			localPro = isProUnlocked();
+		}
+		console.log('Effective Pro Status - Local:', localPro, 'Host:', hostPro, 'Result:', localPro || hostPro);
+		return localPro || hostPro;
+	}
+);
+
 export function disconnectCollaboration() {
 	if (socket) {
 		socket.disconnect();
@@ -263,7 +258,6 @@ export function disconnectCollaboration() {
 		currentSessionId = null;
 	}
 	
-	// Clean up stored session ID
 	if (typeof localStorage !== 'undefined') {
 		localStorage.removeItem('collaboration-session-id');
 	}
@@ -274,4 +268,5 @@ export function disconnectCollaboration() {
 	fieldFocuses.set({});
 	typingUsers.set({});
 	connectionError.set(null);
+	hostProStatus.set(false);
 }

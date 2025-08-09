@@ -81,12 +81,12 @@
 			// Store session ID for persistence
 			localStorage.setItem('collaboration-session-id', result.sessionId);
 			
-			// Join the collaboration session after a small delay
+			// Join the collaboration session after a small delay as host
 			setTimeout(() => {
 				console.log('Creator joining collaboration session:', result.sessionId);
 				joinSession(result.sessionId, {
 					name: 'Session Creator'
-				});
+				}, true); // true = isHost
 			}, 1000);
 			
 			startOTPTimer();

@@ -45,7 +45,7 @@
 	import Lock from '@lucide/svelte/icons/lock';
 	import DarkModeToggle from '$lib/components/DarkModeToggle.svelte';
 	import CollaborationAvatars from '$lib/components/CollaborationAvatars.svelte';
-	import { initializeCollaboration, joinSession, isInSession } from '$lib/stores/collaboration';
+	import { initializeCollaboration, joinSession, isInSession, effectiveProStatus } from '$lib/stores/collaboration';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
@@ -58,7 +58,7 @@
 	let showSettings = $state(false);
 	let showShareDialog = $state(false);
 	let isFreelancerMode = $state(false);
-	let isProEnabled = $state(isProUnlocked());
+	let isProEnabled = $state($effectiveProStatus);
 	let isSharedSession = $state(false);
 	let showSharedAlert = $state(false);
 	let currentSessionId = $state<string | null>(null);
@@ -66,6 +66,11 @@
 	// Save input values to localStorage when they change
 	$effect(() => {
 		saveInputValuesToStorage({ grossSalary, customerRate });
+	});
+
+	// Update Pro status when effective Pro status changes
+	$effect(() => {
+		isProEnabled = $effectiveProStatus;
 	});
 
 	let calculation = $derived(calculateSalaryBreakdown(grossSalary, customerRate, config));
@@ -93,6 +98,12 @@
 		showShareDialog = false;
 	}
 
+	function handleShareOpen() {
+		showShareDialog = true;
+		// Initialize collaboration when user intends to share
+		initializeCollaborationIfNeeded();
+	}
+
 	// Handle field updates from collaborators
 	function handleCollaborationFieldUpdate(event: CustomEvent) {
 		const { fieldId, value, userId } = event.detail;
@@ -107,32 +118,30 @@
 		}
 	}
 
+	// Initialize collaboration only when needed
+	function initializeCollaborationIfNeeded() {
+		if (!browser) return;
+		
+		// Initialize collaboration
+		initializeCollaboration();
+		
+		// Listen for collaboration field updates
+		window.addEventListener('collaboration-field-update', handleCollaborationFieldUpdate as EventListener);
+	}
+
 	// Handle shared session data on mount
 	onMount(() => {
 		if (browser) {
-			// Initialize collaboration
-			initializeCollaboration();
-			
-			// Listen for collaboration field updates
-			window.addEventListener('collaboration-field-update', handleCollaborationFieldUpdate as EventListener);
-			
 			// Check for collaboration session
 			const urlParams = new URLSearchParams(window.location.search);
 			const isShared = urlParams.has('shared');
 			const sessionId = urlParams.get('sessionId');
 			const storedSessionId = localStorage.getItem('collaboration-session-id');
 			
-			// If we have a stored session ID from a previous share creation, rejoin it
-			if (!isShared && storedSessionId) {
-				console.log('🔄 Rejoining existing collaboration session:', storedSessionId);
-				currentSessionId = storedSessionId;
-				setTimeout(() => {
-					console.log('⏰ Attempting to rejoin stored session:', storedSessionId);
-					joinSession(storedSessionId);
-				}, 1500);
-			}
-			
+			// Only initialize if we have a shared session context
 			if (isShared) {
+				initializeCollaborationIfNeeded();
+				
 				const sharedData = localStorage.getItem('shared-calculator-data');
 				const isSharedFlag = localStorage.getItem('is-shared-session');
 				
@@ -194,7 +203,9 @@
 		<div class="mb-6 text-center sm:mb-8">
 			<div class="mb-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
 				<div class="flex flex-1 items-center justify-start">
-					<CollaborationAvatars />
+					{#if $isInSession}
+						<CollaborationAvatars />
+					{/if}
 				</div>
 				<div class="flex flex-col items-center text-center">
 					<div class="mb-2 flex items-center justify-center gap-2 sm:gap-3">
@@ -211,7 +222,7 @@
 					<Button
 						variant="outline"
 						size="sm"
-						onclick={() => (showShareDialog = true)}
+						onclick={handleShareOpen}
 						class="flex items-center gap-2"
 					>
 						<Share2 class="h-4 w-4" />

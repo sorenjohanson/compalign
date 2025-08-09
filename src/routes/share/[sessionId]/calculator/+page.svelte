@@ -21,7 +21,7 @@
 	import MarginComparisonChart from '$lib/components/MarginComparisonChart.svelte';
 	import CollaborativeFormattedNumberInput from '$lib/components/CollaborativeFormattedNumberInput.svelte';
 	import CollaborationAvatars from '$lib/components/CollaborationAvatars.svelte';
-	import { initializeCollaboration, joinSession, isInSession, leaveSession } from '$lib/stores/collaboration';
+	import { initializeCollaboration, joinSession, isInSession, leaveSession, effectiveProStatus } from '$lib/stores/collaboration';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Switch } from '$lib/components/ui/switch/index.js';
@@ -56,12 +56,17 @@
 	let config = $state(loadSettingsFromStorage());
 	let showSettings = $state(false);
 	let isFreelancerMode = $state(false);
-	let isProEnabled = $state(isProUnlocked());
+	let isProEnabled = $state($effectiveProStatus);
 	let showSharedAlert = $state(true);
 
 	// Save input values to localStorage when they change
 	$effect(() => {
 		saveInputValuesToStorage({ grossSalary, customerRate });
+	});
+
+	// Update Pro status when effective Pro status changes
+	$effect(() => {
+		isProEnabled = $effectiveProStatus;
 	});
 
 	let calculation = $derived(calculateSalaryBreakdown(grossSalary, customerRate, config));

@@ -1,5 +1,3 @@
-// Collaboration system for shared salary calculator sessions
-
 export interface SharedSession {
 	id: string;
 	otpCode: string;
@@ -13,7 +11,6 @@ export interface SharedSession {
 	};
 }
 
-// Single active session storage (in production, use a proper database)
 let activeSession: SharedSession | null = null;
 
 export function generateSessionId(): string {
@@ -26,7 +23,7 @@ export function generateOTP(): string {
 
 export function rotateOTP(session: SharedSession): SharedSession {
 	const now = new Date();
-	const otpExpiresAt = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes
+	const otpExpiresAt = new Date(now.getTime() + 30 * 60 * 1000);
 	
 	session.otpCode = generateOTP();
 	session.otpExpiresAt = otpExpiresAt;
@@ -37,17 +34,15 @@ export function rotateOTP(session: SharedSession): SharedSession {
 export function createOrUpdateSharedSession(calculatorData: SharedSession['calculatorData']): SharedSession {
 	const now = new Date();
 	
-	// If there's an existing active session, update its data and rotate OTP
 	if (activeSession && activeSession.isActive) {
 		activeSession.calculatorData = calculatorData;
 		activeSession = rotateOTP(activeSession);
 		return activeSession;
 	}
 	
-	// Create new session
 	const sessionId = generateSessionId();
 	const otpCode = generateOTP();
-	const otpExpiresAt = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes
+	const otpExpiresAt = new Date(now.getTime() + 30 * 60 * 1000);
 
 	activeSession = {
 		id: sessionId,
@@ -68,7 +63,6 @@ export function getActiveSession(): SharedSession | null {
 	
 	const now = new Date();
 	
-	// Check if OTP has expired and rotate if needed
 	if (activeSession.otpExpiresAt < now) {
 		activeSession = rotateOTP(activeSession);
 	}
@@ -91,10 +85,8 @@ export function verifyOTP(sessionId: string, inputOTP: string): boolean {
 		return false;
 	}
 	
-	// Check if OTP has expired
 	const now = new Date();
 	if (session.otpExpiresAt < now) {
-		// Rotate OTP and return false for expired OTP
 		rotateOTP(session);
 		return false;
 	}

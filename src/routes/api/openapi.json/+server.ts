@@ -1,5 +1,5 @@
 /**
- * OpenAPI specification for the Salary Calculator Collaboration API
+ * OpenAPI specification for the CompAlign Collaboration API
  */
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types.js';
@@ -7,16 +7,16 @@ import type { RequestHandler } from './$types.js';
 const openApiSpec = {
 	openapi: '3.0.3',
 	info: {
-		title: 'Salary Calculator Collaboration API',
-		description: 'API for sharing salary calculator sessions with secure OTP-based access',
+		title: 'CompAlign Collaboration API',
+		description: 'API for sharing CompAlign sessions with secure OTP-based access',
 		version: '1.0.0',
 		contact: {
 			name: 'API Support',
-			email: 'support@example.com'
+			email: 'compalign@soeren.codes'
 		},
 		license: {
-			name: 'MIT',
-			url: 'https://opensource.org/licenses/MIT'
+			name: 'AGPL v3',
+			url: 'https://www.gnu.org/licenses/agpl-3.0.en.html'
 		}
 	},
 	servers: [
@@ -38,15 +38,15 @@ const openApiSpec = {
 	tags: [
 		{
 			name: 'Collaboration',
-			description: 'Endpoints for sharing salary calculator sessions'
+			description: 'Endpoints for sharing CompAlign sessions'
 		}
 	],
 	paths: {
 		'/share': {
 			post: {
 				tags: ['Collaboration'],
-				summary: 'Create or update shared calculator session',
-				description: 'Creates a new shared session or updates an existing one with fresh calculator data and rotated OTP. Only one session can be active at a time.',
+				summary: 'Create or update shared CompAlign session',
+				description: 'Creates a new shared session or updates an existing one with fresh CompAlign data and rotated OTP. Only one session can be active at a time.',
 				operationId: 'createOrUpdateShare',
 				requestBody: {
 					required: true,
@@ -88,7 +88,7 @@ const openApiSpec = {
 			get: {
 				tags: ['Collaboration'],
 				summary: 'Get current active session',
-				description: 'Retrieves the currently active shared calculator session, if any',
+				description: 'Retrieves the currently active shared CompAlign session',
 				operationId: 'getActiveSession',
 				responses: {
 					'200': {
@@ -96,6 +96,14 @@ const openApiSpec = {
 						content: {
 							'application/json': {
 								schema: { $ref: '#/components/schemas/SessionResponse' }
+							}
+						}
+					},
+					'404': {
+						description: 'No active session found',
+						content: {
+							'application/json': {
+								schema: { $ref: '#/components/schemas/ErrorResponse' }
 							}
 						}
 					},
@@ -114,7 +122,7 @@ const openApiSpec = {
 			post: {
 				tags: ['Collaboration'],
 				summary: 'Deactivate current shared session',
-				description: 'Deactivates the currently active shared calculator session',
+				description: 'Deactivates the currently active shared CompAlign session',
 				operationId: 'deactivateSession',
 				responses: {
 					'200': {
@@ -139,8 +147,8 @@ const openApiSpec = {
 		'/share/{sessionId}/verify': {
 			post: {
 				tags: ['Collaboration'],
-				summary: 'Verify OTP and access shared calculator data',
-				description: 'Verifies the provided OTP code and returns calculator data if valid',
+				summary: 'Verify OTP and access shared CompAlign data',
+				description: 'Verifies the provided OTP code and returns CompAlign data if valid',
 				operationId: 'verifyOTP',
 				parameters: [
 					{
@@ -226,7 +234,7 @@ const openApiSpec = {
 						example: 110
 					},
 					config: {
-						$ref: '#/components/schemas/CalculatorConfig'
+						$ref: '#/components/schemas/CompAlignConfig'
 					}
 				}
 			},
@@ -267,10 +275,7 @@ const openApiSpec = {
 				type: 'object',
 				properties: {
 					session: {
-						oneOf: [
-							{ type: 'null', description: 'No active session' },
-							{ $ref: '#/components/schemas/SessionInfo' }
-						]
+						$ref: '#/components/schemas/SessionInfo'
 					}
 				}
 			},
@@ -328,12 +333,12 @@ const openApiSpec = {
 						example: true,
 						description: 'Indicates successful verification'
 					},
-					calculatorData: {
-						$ref: '#/components/schemas/CalculatorData'
+					compAlignData: {
+						$ref: '#/components/schemas/CompAlignData'
 					}
 				}
 			},
-			CalculatorData: {
+			CompAlignData: {
 				type: 'object',
 				properties: {
 					grossSalary: {
@@ -347,13 +352,13 @@ const openApiSpec = {
 						description: 'Hourly billing rate in euros'
 					},
 					config: {
-						$ref: '#/components/schemas/CalculatorConfig'
+						$ref: '#/components/schemas/CompAlignConfig'
 					}
 				}
 			},
-			CalculatorConfig: {
+			CompAlignConfig: {
 				type: 'object',
-				description: 'Calculator configuration settings',
+				description: 'CompAlign configuration settings',
 				properties: {
 					employerSocialContributionRate: {
 						type: 'number',

@@ -16,25 +16,19 @@
 
 	let { benchmarks, comparison }: Props = $props();
 
-	// Get margin position and industry stats
 	const marginPosition = $derived(getMarginPosition(comparison.yourNetMargin));
 	const industryStats = $derived(getIndustryMarginStats());
 
-	// Create a clean data structure with your position clearly marked
 	const chartData = $derived(() => {
-		// Create all items first
 		const allItems = [
-			// Industry benchmarks
 			...benchmarks.map((b) => ({
 				name: b.category,
 				description: b.description,
 				min: b.netMarginRange.min,
 				max: b.netMarginRange.max,
 				type: 'industry' as const,
-				// Use average for positioning
 				avgMargin: (b.netMarginRange.min + b.netMarginRange.max) / 2
 			})),
-			// Company margin
 			{
 				name: 'Company Net Profit Margin',
 				description: '',
@@ -45,11 +39,9 @@
 			}
 		];
 
-		// Sort everything by average margin value for natural ordering
 		return allItems.sort((a, b) => a.avgMargin - b.avgMargin);
 	});
 
-	// Get color classes based on margin position
 	const getCompanyColors = () => {
 		if (marginPosition === 'below_low') {
 			return {
@@ -80,7 +72,6 @@
 </script>
 
 <div class="space-y-6">
-	<!-- Position Summary -->
 	<div class="flex items-center justify-between rounded-lg border-2 p-4 {getCompanyColors().bg}">
 		<div class="flex items-center gap-3">
 			{#if comparison.industryPosition === 'above'}
@@ -107,7 +98,6 @@
 		</div>
 	</div>
 
-	<!-- Simplified Comparison Table -->
 	<div class="rounded-lg border bg-card">
 		<div class="border-b p-4">
 			<h4 class="font-semibold">Industry Margin Comparison</h4>
@@ -161,7 +151,6 @@
 		</div>
 	</div>
 
-	<!-- Quick Stats -->
 	<div class="grid grid-cols-3 gap-4">
 		<div
 			class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-center dark:border-amber-800 dark:bg-amber-950/30"
@@ -189,7 +178,6 @@
 		</div>
 	</div>
 
-	<!-- Data Sources Reference -->
 	<div class="mt-6 border-t pt-4">
 		<p class="text-center text-xs text-muted-foreground italic">
 			Data sources: Staffing Industry Analysts, American Staffing Association, 2024 Industry Reports

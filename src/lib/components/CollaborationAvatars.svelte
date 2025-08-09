@@ -1,20 +1,17 @@
 <script lang="ts">
 	import * as Avatar from '$lib/components/ui/avatar';
-	import { Badge } from '$lib/components/ui/badge';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import { totalUsers, isInSession, currentUser } from '$lib/stores/collaboration';
 	import { Wifi, WifiOff } from '@lucide/svelte/icons';
 
-	// Show up to 5 avatars, then +N for overflow
-	$: visibleUsers = $totalUsers.slice(0, 5);
-	$: overflowCount = Math.max(0, $totalUsers.length - 5);
+	const visibleUsers = $derived($totalUsers.slice(0, 5));
+	const overflowCount = $derived(Math.max(0, $totalUsers.length - 5));
 </script>
 
 {#if $isInSession && $totalUsers.length > 0}
 	<div
 		class="flex items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/80"
 	>
-		<!-- Avatar stack -->
 		<div class="flex items-center -space-x-2">
 			{#each visibleUsers as user, index}
 				<Tooltip.Provider>
@@ -65,7 +62,6 @@
 			{/if}
 		</div>
 
-		<!-- Status indicator -->
 		<div class="flex items-center gap-1">
 			<Wifi class="h-3 w-3 text-green-500" />
 			<span class="text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -74,7 +70,6 @@
 		</div>
 	</div>
 {:else if $isInSession}
-	<!-- Loading or solo state -->
 	<div
 		class="flex items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/80"
 	>
@@ -86,7 +81,6 @@
 {/if}
 
 <style>
-	/* Ensure avatars stack properly */
 	:global(.avatar-stack .avatar:hover) {
 		z-index: 10;
 	}

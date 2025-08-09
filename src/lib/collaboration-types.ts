@@ -26,11 +26,12 @@ export interface CollaborationSession {
 	};
 	fieldFocuses: Map<string, FieldFocus>; // fieldId -> focus info
 	lastUpdated: Date;
+	hostProStatus: boolean; // Whether the session host has Pro unlocked
 }
 
 export interface SocketEvents {
 	// Client -> Server
-	'join-session': (sessionId: string, userData?: Partial<CollaborationUser>) => void;
+	'join-session': (sessionId: string, userData?: Partial<CollaborationUser>, hostProStatus?: boolean) => void;
 	'leave-session': (sessionId: string) => void;
 	'field-focus': (sessionId: string, fieldId: string | null) => void;
 	'field-update': (sessionId: string, fieldId: string, value: any) => void;
@@ -38,7 +39,7 @@ export interface SocketEvents {
 	'user-typing': (sessionId: string, fieldId: string, isTyping: boolean) => void;
 
 	// Server -> Client
-	'session-joined': (user: CollaborationUser, users: CollaborationUser[]) => void;
+	'session-joined': (user: CollaborationUser, users: CollaborationUser[], hostProStatus: boolean) => void;
 	'user-joined': (user: CollaborationUser) => void;
 	'user-left': (userId: string) => void;
 	'user-updated': (user: CollaborationUser) => void;
