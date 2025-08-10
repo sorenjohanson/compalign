@@ -120,7 +120,6 @@
 		</Dialog.Header>
 
 		<div class="space-y-4 py-4 sm:space-y-6">
-			<!-- Pro Features Section -->
 			<div
 				class="rounded-lg border border-blue-200/50 bg-gradient-to-r from-blue-50/50 to-blue-50/50 p-4 dark:border-blue-800/50 dark:from-blue-950/20 dark:to-blue-950/20"
 			>
@@ -150,12 +149,12 @@
 				<div class="text-sm text-muted-foreground">
 					{#if isProEnabled}
 						<p>✓ Industry benchmark comparisons</p>
-						<p>✓ Employee vs Freelancer mode switching</p>
-						<p>✓ Advanced analytics and insights</p>
+						<p>✓ Freelancer mode (soon!)</p>
+						<p>✓ Internationalisation (soon!)</p>
 					{:else}
 						<p>• Industry benchmark comparisons</p>
-						<p>• Employee vs Freelancer mode switching</p>
-						<p>• Advanced analytics and insights</p>
+						<p>• Freelancer mode (soon!)</p>
+						<p>• Internationalisation (soon!)</p>
 					{/if}
 				</div>
 			</div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Euro, Clock, Users } from '@lucide/svelte';
+	import { Euro, Clock, Users, Lock } from '@lucide/svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Alert from '$lib/components/ui/alert';
 	import Switch from '$lib/components/ui/switch/switch.svelte';
@@ -23,8 +23,7 @@
 		<Alert.Root class="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
 			<Users class="h-4 w-4" />
 			<Alert.Description>
-				You're now viewing a shared salary calculation. The values have been loaded
-				automatically.
+				You're now viewing a shared salary calculation. The values have been loaded automatically.
 			</Alert.Description>
 		</Alert.Root>
 	</div>
@@ -49,10 +48,10 @@
 					</div>
 					<Badge
 						variant="secondary"
-						class="border-gray-200 bg-gray-100 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+						class="border-blue-200 bg-blue-100 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
 					>
-						<Clock class="mr-1 h-3 w-3" />
-						Coming soon
+						<Lock class="mr-1 h-3 w-3" />
+						Pro
 					</Badge>
 				</div>
 			</div>

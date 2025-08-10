@@ -311,12 +311,12 @@
 								<span class="text-xs text-muted-foreground/60 sm:text-sm">Freelancer</span>
 							</div>
 							<Badge
-								variant="secondary"
-								class="border-gray-200 bg-gray-100 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-							>
-								<Clock class="mr-1 h-3 w-3" />
-								Coming soon
-							</Badge>
+									variant="secondary"
+									class="border-blue-200 bg-blue-100 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
+								>
+									<Lock class="mr-1 h-3 w-3" />
+									Pro
+						</Badge>
 						</div>
 					</div>
 				</Card.Header>
@@ -799,7 +799,7 @@
 									class="border-blue-200 bg-blue-100 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
 								>
 									<Lock class="mr-1 h-3 w-3" />
-									<span class="xs:inline hidden">Unlock with </span>Pro
+									Pro
 								</Badge>
 								<p class="mt-3 max-w-xs text-sm text-muted-foreground">
 									Access detailed industry benchmarks
