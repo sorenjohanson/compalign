@@ -5,7 +5,6 @@
 		generateMarginComparison,
 		generateMockMarginComparison,
 		mockIndustryBenchmarks,
-		getMarginStatus,
 		loadSettingsFromStorage,
 		saveSettingsToStorage,
 		loadInputValuesFromStorage,
