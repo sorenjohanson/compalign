@@ -53,16 +53,15 @@ import type { RequestHandler } from './$types';
 export const GET: RequestHandler = async ({ url }) => {
 	try {
 		const userId = url.searchParams.get('userId');
-		
+
 		const paymentLink = generatePaymentLink(userId || undefined);
-		
+
 		return json({
 			paymentLink,
 			productName: STRIPE_CONFIG.PRODUCT_NAME,
 			price: STRIPE_CONFIG.PRICE,
 			currency: STRIPE_CONFIG.CURRENCY
 		});
-
 	} catch (error) {
 		console.error('Error generating payment link:', error);
 		return json({ error: 'Failed to generate payment link' }, { status: 500 });

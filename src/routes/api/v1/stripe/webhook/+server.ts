@@ -75,7 +75,7 @@ function isValidWebhook(payload: any, signature: string): boolean {
 function processSuccessfulPayment(event: StripeWebhookEvent): boolean {
 	try {
 		const clientReferenceId = event.data.object.client_reference_id;
-		
+
 		if (clientReferenceId) {
 			// Add user to Pro users set
 			proUsers.add(clientReferenceId);
@@ -95,9 +95,9 @@ export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const body = await request.text();
 		const signature = request.headers.get('stripe-signature') || '';
-		
+
 		let event: StripeWebhookEvent;
-		
+
 		try {
 			event = JSON.parse(body);
 		} catch (error) {
@@ -130,7 +130,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		return json({ received: true });
-
 	} catch (error) {
 		console.error('Webhook processing error:', error);
 		return json({ error: 'Failed to process webhook' }, { status: 500 });
@@ -139,15 +138,15 @@ export const POST: RequestHandler = async ({ request }) => {
 
 export const GET: RequestHandler = async ({ url }) => {
 	const userId = url.searchParams.get('userId');
-	
+
 	if (!userId) {
 		return json({ error: 'Missing userId parameter' }, { status: 400 });
 	}
 
 	const hasProAccess = proUsers.has(userId);
-	
-	return json({ 
-		userId, 
+
+	return json({
+		userId,
 		hasProAccess,
 		message: hasProAccess ? 'Pro access confirmed' : 'No Pro access found'
 	});

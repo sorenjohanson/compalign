@@ -14,7 +14,9 @@ export interface PaymentLinkError {
  * @param userId - Optional user ID to associate with the payment
  * @returns Promise with payment link data or error
  */
-export async function getPaymentLink(userId?: string): Promise<PaymentLinkResponse | PaymentLinkError> {
+export async function getPaymentLink(
+	userId?: string
+): Promise<PaymentLinkResponse | PaymentLinkError> {
 	try {
 		const params = new URLSearchParams();
 		if (userId) {
@@ -25,7 +27,7 @@ export async function getPaymentLink(userId?: string): Promise<PaymentLinkRespon
 		const response = await fetch(url, {
 			method: 'GET',
 			headers: {
-				'Accept': 'application/json'
+				Accept: 'application/json'
 			}
 		});
 
@@ -36,7 +38,6 @@ export async function getPaymentLink(userId?: string): Promise<PaymentLinkRespon
 		}
 
 		return data as PaymentLinkResponse;
-
 	} catch (error) {
 		console.error('Failed to get payment link:', error);
 		return {

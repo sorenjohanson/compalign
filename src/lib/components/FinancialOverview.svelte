@@ -4,10 +4,7 @@
 	import { formatCurrency, formatPercentage } from '$lib/salary-calculator';
 	import type { SalaryCalculation, CalculatorConfig } from '$lib/salary-calculator';
 
-	let {
-		calculation,
-		config
-	} = $props();
+	let { calculation, config } = $props();
 </script>
 
 <!-- Financial Overview -->

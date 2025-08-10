@@ -20,16 +20,18 @@ export interface IndustryMarginError {
  * Fetches industry margin benchmarks from the server
  * Requires Pro access - validated server-side
  */
-export async function fetchIndustryMargins(userId?: string | null): Promise<IndustryMarginResponse | IndustryMarginError> {
+export async function fetchIndustryMargins(
+	userId?: string | null
+): Promise<IndustryMarginResponse | IndustryMarginError> {
 	try {
 		const headers: Record<string, string> = {
-			'Accept': 'application/json'
+			Accept: 'application/json'
 		};
-		
+
 		if (userId) {
 			headers['x-user-id'] = userId;
 		}
-		
+
 		const response = await fetch('/api/v1/industry-margins', {
 			method: 'GET',
 			headers

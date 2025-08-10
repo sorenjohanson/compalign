@@ -1,12 +1,16 @@
 <script lang="ts">
-	import { Target, ArrowUpRight, ArrowRight, ArrowDownRight, Calendar, Clock } from '@lucide/svelte';
+	import {
+		Target,
+		ArrowUpRight,
+		ArrowRight,
+		ArrowDownRight,
+		Calendar,
+		Clock
+	} from '@lucide/svelte';
 	import * as Card from '$lib/components/ui/card';
 	import type { SalaryCalculation, NegotiationInsight } from '$lib/salary-calculator';
 
-	let {
-		calculation,
-		strategicInsights
-	} = $props();
+	let { calculation, strategicInsights } = $props();
 </script>
 
 <!-- Strategic Analysis -->
@@ -35,9 +39,7 @@
 							{#if insight.impact === 'positive'}
 								<ArrowUpRight class="h-5 w-5 text-blue-600 sm:h-6 sm:w-6 dark:text-blue-300" />
 							{:else if insight.impact === 'negative'}
-								<ArrowDownRight
-									class="h-5 w-5 text-amber-700 sm:h-6 sm:w-6 dark:text-amber-300"
-								/>
+								<ArrowDownRight class="h-5 w-5 text-amber-700 sm:h-6 sm:w-6 dark:text-amber-300" />
 							{:else}
 								<ArrowRight class="h-5 w-5 text-gray-600 sm:h-6 sm:w-6 dark:text-gray-400" />
 							{/if}
@@ -63,9 +65,7 @@
 					<div class="mb-2 flex items-center justify-center sm:mb-3">
 						<Calendar class="h-5 w-5 text-cyan-600 sm:h-6 sm:w-6 dark:text-cyan-300" />
 					</div>
-					<div
-						class="mb-1 text-xl font-bold text-cyan-700 sm:mb-2 sm:text-2xl dark:text-cyan-300"
-					>
+					<div class="mb-1 text-xl font-bold text-cyan-700 sm:mb-2 sm:text-2xl dark:text-cyan-300">
 						{calculation.workingDaysPerYear}
 					</div>
 					<div class="mb-1 text-xs font-medium sm:text-sm">Working Days</div>

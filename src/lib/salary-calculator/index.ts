@@ -33,10 +33,7 @@ export {
 	validateFuzzyHours
 } from './calculations';
 
-export {
-	formatCurrency,
-	formatPercentage
-} from './formatting';
+export { formatCurrency, formatPercentage } from './formatting';
 
 export {
 	generateStrategicInsights,

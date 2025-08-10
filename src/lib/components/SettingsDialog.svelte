@@ -26,7 +26,7 @@
 
 	let tempConfig = $state({ ...config });
 	let resetConfirmation = $state(false);
-	
+
 	// Use the new Pro status store
 	let isProEnabled = $derived($proStatus.isUnlocked);
 
@@ -89,14 +89,14 @@
 			try {
 				const userId = proStatus.getUserId();
 				const response = await getPaymentLink(userId || undefined);
-				
+
 				if (isPaymentLinkError(response)) {
 					console.error('Failed to get payment link:', response.error);
 					// Fallback - could show an error message to user
 					alert('Unable to load payment page. Please try again.');
 					return;
 				}
-				
+
 				// Redirect to Stripe payment
 				window.open(response.paymentLink, '_blank');
 			} catch (error) {

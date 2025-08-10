@@ -6,10 +6,7 @@
 	import { isCollaborationEnabled } from '$lib/feature-flags';
 	import { isInSession } from '$lib/stores/collaboration';
 
-	let {
-		onShareOpen,
-		onSettingsOpen
-	} = $props();
+	let { onShareOpen, onSettingsOpen } = $props();
 </script>
 
 <!-- Header -->
@@ -29,22 +26,12 @@
 		<div class="flex flex-1 items-center justify-end gap-2">
 			<DarkModeToggle />
 			{#if isCollaborationEnabled()}
-				<Button
-					variant="outline"
-					size="sm"
-					onclick={onShareOpen}
-					class="flex items-center gap-2"
-				>
+				<Button variant="outline" size="sm" onclick={onShareOpen} class="flex items-center gap-2">
 					<Share2 class="h-4 w-4" />
 					<span class="hidden sm:inline">Share</span>
 				</Button>
 			{/if}
-			<Button
-				variant="outline"
-				size="sm"
-				onclick={onSettingsOpen}
-				class="flex items-center gap-2"
-			>
+			<Button variant="outline" size="sm" onclick={onSettingsOpen} class="flex items-center gap-2">
 				<Settings class="h-4 w-4" />
 				<span class="hidden sm:inline">Settings</span>
 			</Button>

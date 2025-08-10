@@ -96,42 +96,42 @@
 	// Load industry margins when Pro status changes
 	$effect(() => {
 		const loadIndustryMargins = async () => {
-		const isProEnabledForRequest = $effectiveProStatus || $proStatus.isUnlocked;
-		if (isProEnabledForRequest) {
-			industryDataLoading = true;
-			industryDataError = null;
-			
-			try {
-				const userId = proStatus.getUserId();
-				const response = await fetchIndustryMargins(userId);
-				if (isIndustryMarginError(response)) {
-					industryDataError = response.error;
+			const isProEnabledForRequest = $effectiveProStatus || $proStatus.isUnlocked;
+			if (isProEnabledForRequest) {
+				industryDataLoading = true;
+				industryDataError = null;
+
+				try {
+					const userId = proStatus.getUserId();
+					const response = await fetchIndustryMargins(userId);
+					if (isIndustryMarginError(response)) {
+						industryDataError = response.error;
+						// Fall back to mock data on error
+						industryBenchmarks = mockIndustryBenchmarks;
+						marginComparison = generateMockMarginComparison(calculation);
+					} else {
+						industryBenchmarks = response.benchmarks;
+						// Generate margin comparison with fetched data
+						marginComparison = generateMarginComparison(calculation, response.benchmarks);
+					}
+				} catch (error) {
+					console.error('Failed to load industry margins:', error);
+					industryDataError = 'Failed to load industry data';
 					// Fall back to mock data on error
 					industryBenchmarks = mockIndustryBenchmarks;
 					marginComparison = generateMockMarginComparison(calculation);
-				} else {
-					industryBenchmarks = response.benchmarks;
-					// Generate margin comparison with fetched data
-					marginComparison = generateMarginComparison(calculation, response.benchmarks);
+				} finally {
+					industryDataLoading = false;
 				}
-			} catch (error) {
-				console.error('Failed to load industry margins:', error);
-				industryDataError = 'Failed to load industry data';
-				// Fall back to mock data on error
+			} else {
+				// Use mock data when Pro access is not available
 				industryBenchmarks = mockIndustryBenchmarks;
 				marginComparison = generateMockMarginComparison(calculation);
-			} finally {
+				industryDataError = null;
 				industryDataLoading = false;
 			}
-		} else {
-			// Use mock data when Pro access is not available
-			industryBenchmarks = mockIndustryBenchmarks;
-			marginComparison = generateMockMarginComparison(calculation);
-			industryDataError = null;
-			industryDataLoading = false;
-		}
 		};
-		
+
 		loadIndustryMargins();
 	});
 
@@ -311,12 +311,12 @@
 								<span class="text-xs text-muted-foreground/60 sm:text-sm">Freelancer</span>
 							</div>
 							<Badge
-									variant="secondary"
-									class="border-blue-200 bg-blue-100 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
-								>
-									<Lock class="mr-1 h-3 w-3" />
-									Pro
-						</Badge>
+								variant="secondary"
+								class="border-blue-200 bg-blue-100 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
+							>
+								<Lock class="mr-1 h-3 w-3" />
+								Pro
+							</Badge>
 						</div>
 					</div>
 				</Card.Header>
@@ -772,7 +772,9 @@
 						{#if industryDataLoading && isProEnabled}
 							<div class="flex items-center justify-center p-8">
 								<div class="text-center">
-									<div class="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+									<div
+										class="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"
+									></div>
 									<p class="mt-2 text-sm text-muted-foreground">Loading industry data...</p>
 								</div>
 							</div>
@@ -784,7 +786,10 @@
 								</div>
 							</div>
 						{:else if marginComparison}
-							<MarginComparisonChart benchmarks={industryBenchmarks} comparison={marginComparison} />
+							<MarginComparisonChart
+								benchmarks={industryBenchmarks}
+								comparison={marginComparison}
+							/>
 						{/if}
 					</div>
 

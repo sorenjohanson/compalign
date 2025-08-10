@@ -73,41 +73,41 @@
 	// Load industry margins when Pro status changes
 	$effect(() => {
 		const loadIndustryMargins = async () => {
-		if (isProEnabled) {
-			industryDataLoading = true;
-			industryDataError = null;
-			
-			try {
-				const userId = proStatus.getUserId();
-				const response = await fetchIndustryMargins(userId);
-				if (isIndustryMarginError(response)) {
-					industryDataError = response.error;
+			if (isProEnabled) {
+				industryDataLoading = true;
+				industryDataError = null;
+
+				try {
+					const userId = proStatus.getUserId();
+					const response = await fetchIndustryMargins(userId);
+					if (isIndustryMarginError(response)) {
+						industryDataError = response.error;
+						// Fall back to mock data on error
+						industryBenchmarks = mockIndustryBenchmarks;
+						marginComparison = generateMockMarginComparison(calculation);
+					} else {
+						industryBenchmarks = response.benchmarks;
+						// Generate margin comparison with fetched data
+						marginComparison = generateMarginComparison(calculation, response.benchmarks);
+					}
+				} catch (error) {
+					console.error('Failed to load industry margins:', error);
+					industryDataError = 'Failed to load industry data';
 					// Fall back to mock data on error
 					industryBenchmarks = mockIndustryBenchmarks;
 					marginComparison = generateMockMarginComparison(calculation);
-				} else {
-					industryBenchmarks = response.benchmarks;
-					// Generate margin comparison with fetched data
-					marginComparison = generateMarginComparison(calculation, response.benchmarks);
+				} finally {
+					industryDataLoading = false;
 				}
-			} catch (error) {
-				console.error('Failed to load industry margins:', error);
-				industryDataError = 'Failed to load industry data';
-				// Fall back to mock data on error
+			} else {
+				// Use mock data when Pro access is not available
 				industryBenchmarks = mockIndustryBenchmarks;
 				marginComparison = generateMockMarginComparison(calculation);
-			} finally {
+				industryDataError = null;
 				industryDataLoading = false;
 			}
-		} else {
-			// Use mock data when Pro access is not available
-			industryBenchmarks = mockIndustryBenchmarks;
-			marginComparison = generateMockMarginComparison(calculation);
-			industryDataError = null;
-			industryDataLoading = false;
-		}
 		};
-		
+
 		loadIndustryMargins();
 	});
 
@@ -224,17 +224,9 @@
 	class="min-h-screen bg-gray-100 px-4 py-4 sm:py-8 dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-800"
 >
 	<div class="mx-auto max-w-6xl">
-		<PageHeader
-			onShareOpen={handleShareOpen}
-			onSettingsOpen={() => (showSettings = true)}
-		/>
+		<PageHeader onShareOpen={handleShareOpen} onSettingsOpen={() => (showSettings = true)} />
 
-		<InputControls
-			bind:grossSalary
-			bind:customerRate
-			bind:isFreelancerMode
-			{showSharedAlert}
-		/>
+		<InputControls bind:grossSalary bind:customerRate bind:isFreelancerMode {showSharedAlert} />
 
 		<KeyMetrics {calculation} {config} />
 

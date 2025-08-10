@@ -1,4 +1,10 @@
-import type { SalaryCalculation, CalculatorConfig, NegotiationInsight, IndustryBenchmark, MarginComparison } from './types';
+import type {
+	SalaryCalculation,
+	CalculatorConfig,
+	NegotiationInsight,
+	IndustryBenchmark,
+	MarginComparison
+} from './types';
 import { defaultConfig } from './config';
 import { formatCurrency, formatPercentage } from './formatting';
 
@@ -123,7 +129,10 @@ export function getMarginPosition(
 	}
 }
 
-export function generateMarginComparison(calculation: SalaryCalculation, benchmarks: IndustryBenchmark[] = []): MarginComparison {
+export function generateMarginComparison(
+	calculation: SalaryCalculation,
+	benchmarks: IndustryBenchmark[] = []
+): MarginComparison {
 	const yourNetMargin = calculation.netMarginPercentage;
 	const yourGrossMargin = calculation.grossMarginPercentage;
 

@@ -39,7 +39,9 @@
 				{#if industryDataLoading && isProEnabled}
 					<div class="flex items-center justify-center p-8">
 						<div class="text-center">
-							<div class="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+							<div
+								class="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"
+							></div>
 							<p class="mt-2 text-sm text-muted-foreground">Loading industry data...</p>
 						</div>
 					</div>

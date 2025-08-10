@@ -23,7 +23,7 @@ function generateUserId(): string {
 
 function loadProStatus(): ProStatus {
 	if (!browser) return defaultProStatus;
-	
+
 	try {
 		const stored = localStorage.getItem(PRO_STATUS_KEY);
 		if (stored) {
@@ -36,13 +36,13 @@ function loadProStatus(): ProStatus {
 	} catch (error) {
 		console.warn('Failed to load Pro status from localStorage:', error);
 	}
-	
+
 	return defaultProStatus;
 }
 
 function saveProStatus(status: ProStatus) {
 	if (!browser) return;
-	
+
 	try {
 		localStorage.setItem(PRO_STATUS_KEY, JSON.stringify(status));
 	} catch (error) {
@@ -54,9 +54,9 @@ const { subscribe, set, update } = writable<ProStatus>(loadProStatus());
 
 export const proStatus = {
 	subscribe,
-	
+
 	initializeUser: () => {
-		update(status => {
+		update((status) => {
 			if (!status.userId) {
 				const newStatus = { ...status, userId: generateUserId() };
 				saveProStatus(newStatus);
@@ -65,9 +65,9 @@ export const proStatus = {
 			return status;
 		});
 	},
-	
+
 	unlock: (paymentId?: string) => {
-		update(status => {
+		update((status) => {
 			const newStatus = {
 				...status,
 				isUnlocked: true,
@@ -78,10 +78,12 @@ export const proStatus = {
 			return newStatus;
 		});
 	},
-	
+
 	getUserId: (): string | null => {
 		let userId: string | null = null;
-		subscribe(status => { userId = status.userId; })();
+		subscribe((status) => {
+			userId = status.userId;
+		})();
 		return userId;
 	}
 };

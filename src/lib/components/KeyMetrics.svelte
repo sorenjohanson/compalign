@@ -1,15 +1,21 @@
 <script lang="ts">
-	import { TrendingUp, ArrowUpRight, ArrowRight, ArrowDownRight, Users, Clock } from '@lucide/svelte';
+	import {
+		TrendingUp,
+		ArrowUpRight,
+		ArrowRight,
+		ArrowDownRight,
+		Users,
+		Clock
+	} from '@lucide/svelte';
 	import * as Card from '$lib/components/ui/card';
 	import { formatCurrency, formatPercentage, getMarginStatus } from '$lib/salary-calculator';
 	import type { SalaryCalculation, CalculatorConfig } from '$lib/salary-calculator';
 
-	let {
-		calculation,
-		config
-	} = $props();
+	let { calculation, config } = $props();
 
-	const marginStatus = $derived(getMarginStatus(calculation.netMarginPercentage, config.targetNetMargin));
+	const marginStatus = $derived(
+		getMarginStatus(calculation.netMarginPercentage, config.targetNetMargin)
+	);
 </script>
 
 <!-- Key Metrics Cards -->

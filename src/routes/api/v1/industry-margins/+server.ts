@@ -148,17 +148,17 @@ function getIndustryMarginStats() {
 // Pro validation using the webhook system
 async function validateProAccess(request: Request): Promise<boolean> {
 	const userId = request.headers.get('x-user-id');
-	
+
 	// If no user ID provided, return false
 	if (!userId) {
 		return false;
 	}
-	
+
 	try {
 		// Check Pro status via webhook endpoint
 		const baseUrl = request.url.split('/api')[0];
 		const response = await fetch(`${baseUrl}/api/v1/stripe/webhook?userId=${userId}`);
-		
+
 		if (response.ok) {
 			const data = await response.json();
 			return data.hasProAccess === true;
@@ -166,7 +166,7 @@ async function validateProAccess(request: Request): Promise<boolean> {
 	} catch (error) {
 		console.error('Error validating Pro access:', error);
 	}
-	
+
 	return false;
 }
 
@@ -176,10 +176,10 @@ export const GET: RequestHandler = async ({ request }) => {
 		const hasProAccess = await validateProAccess(request);
 		if (!hasProAccess) {
 			return json(
-				{ 
+				{
 					error: 'Pro access required for industry benchmark data',
-					requiresPro: true 
-				}, 
+					requiresPro: true
+				},
 				{ status: 403 }
 			);
 		}
