@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Calculator, Share2, Settings } from '@lucide/svelte';
+	import { AlignHorizontalDistributeCenter, Share2, Settings } from '@lucide/svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import DarkModeToggle from '$lib/components/DarkModeToggle.svelte';
 	import CollaborationAvatars from '$lib/components/CollaborationAvatars.svelte';
@@ -19,8 +19,8 @@
 		</div>
 		<div class="flex flex-col items-center text-center">
 			<div class="mb-2 flex items-center justify-center gap-2 sm:gap-3">
-				<Calculator class="hidden h-12 w-12 text-primary md:block" />
-				<h1 class="text-3xl font-bold">Rate Transparency Calculator</h1>
+				<AlignHorizontalDistributeCenter class="hidden h-12 w-12 text-primary md:block" />
+				<h1 class="text-3xl font-bold">CompAlign</h1>
 			</div>
 		</div>
 		<div class="flex flex-1 items-center justify-end gap-2">

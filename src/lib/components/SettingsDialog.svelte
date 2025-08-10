@@ -149,10 +149,12 @@
 				<div class="text-sm text-muted-foreground">
 					{#if isProEnabled}
 						<p>✓ Industry benchmark comparisons</p>
+						<p>✓ Live collaboration features</p>
 						<p>✓ Freelancer mode (soon!)</p>
 						<p>✓ Internationalisation (soon!)</p>
 					{:else}
 						<p>• Industry benchmark comparisons</p>
+						<p>• Live collaboration features</p>
 						<p>• Freelancer mode (soon!)</p>
 						<p>• Internationalisation (soon!)</p>
 					{/if}
