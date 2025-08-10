@@ -71,7 +71,12 @@ export function loadInputValuesFromStorage(): InputValues {
 	return defaultInputValues;
 }
 
+// Legacy pro status functions - kept for backward compatibility
+// New code should use the auth stores directly
+
 export function isProUnlocked(): boolean {
+	// Fallback to localStorage for backward compatibility
+	// The auth system should be the primary source of truth
 	if (typeof localStorage === 'undefined') return false;
 	return localStorage.getItem(PRO_STORAGE_KEY) === 'true';
 }

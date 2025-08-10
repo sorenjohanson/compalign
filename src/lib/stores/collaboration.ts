@@ -1,9 +1,12 @@
-import { writable, derived, get } from 'svelte/store';
-import { io, type Socket } from 'socket.io-client';
-import type { CollaborationUser, SocketEvents } from '../collaboration-types';
+import { writable, derived } from 'svelte/store';
+import type { CollaborationUser } from '../collaboration/collaboration-types';
 import { browser } from '$app/environment';
 import { isProUnlocked } from '$lib/salary-calculator';
-import { isCollaborationEnabled } from '$lib/feature-flags';
+import {
+	createCollaborationProvider,
+	isCollaborationEnabled,
+	type CollaborationProvider
+} from '../collaboration/providers';
 
 export const isConnected = writable(false);
 export const currentUser = writable<CollaborationUser | null>(null);
@@ -13,13 +16,12 @@ export const typingUsers = writable<Record<string, string[]>>({});
 export const connectionError = writable<string | null>(null);
 export const hostProStatus = writable<boolean>(false);
 
-let socket: Socket<SocketEvents> | null = null;
-let currentSessionId: string | null = null;
+let provider: CollaborationProvider | null = null;
 
 export function initializeCollaboration() {
-	if (!browser || socket) {
+	if (!browser || provider) {
 		console.log('Collaboration already initialized or not in browser');
-		return socket;
+		return provider;
 	}
 
 	if (!isCollaborationEnabled()) {
@@ -27,23 +29,30 @@ export function initializeCollaboration() {
 		return null;
 	}
 
-	console.log('Initializing Socket.IO client...');
-	socket = io({
-		transports: ['websocket', 'polling'],
-		autoConnect: false,
-		reconnection: true,
-		timeout: 10000
-	});
+	console.log('Initializing collaboration provider...');
+	provider = createCollaborationProvider();
 
-	socket.connect();
+	if (!provider) {
+		console.log('No collaboration provider available');
+		return null;
+	}
 
-	socket.on('connect', () => {
+	setupProviderListeners();
+	provider.connect();
+
+	return provider;
+}
+
+function setupProviderListeners() {
+	if (!provider) return;
+
+	provider.on('connect', () => {
 		console.log('Connected to collaboration server');
 		isConnected.set(true);
 		connectionError.set(null);
 	});
 
-	socket.on('disconnect', () => {
+	provider.on('disconnect', () => {
 		console.log('Disconnected from collaboration server');
 		isConnected.set(false);
 		collaborators.set([]);
@@ -51,13 +60,13 @@ export function initializeCollaboration() {
 		typingUsers.set({});
 	});
 
-	socket.on('connect_error', (error) => {
-		console.error('Connection error:', error);
+	provider.on('collaboration-error', (message) => {
+		console.error('Collaboration error:', message);
 		isConnected.set(false);
-		connectionError.set('Failed to connect to collaboration server');
+		connectionError.set(message);
 	});
 
-	socket.on('session-joined', (user, users, sessionHostProStatus) => {
+	provider.on('session-joined', (user, users, sessionHostProStatus) => {
 		console.log(
 			'✅ Successfully joined session as:',
 			user.name,
@@ -72,7 +81,7 @@ export function initializeCollaboration() {
 		hostProStatus.set(sessionHostProStatus);
 	});
 
-	socket.on('user-joined', (user) => {
+	provider.on('user-joined', (user) => {
 		console.log('👋 New user joined session:', user.name, 'Color:', user.color);
 		collaborators.update((users) => {
 			const existing = users.find((u) => u.id === user.id);
@@ -84,7 +93,7 @@ export function initializeCollaboration() {
 		});
 	});
 
-	socket.on('user-left', (userId) => {
+	provider.on('user-left', (userId) => {
 		console.log('User left:', userId);
 		collaborators.update((users) => users.filter((u) => u.id !== userId));
 
@@ -110,10 +119,7 @@ export function initializeCollaboration() {
 		});
 	});
 
-	socket.on('field-focused', (fieldId, user) => {
-		const currentUserData = get(currentUser);
-		if (currentUserData && user.id === currentUserData.id) return;
-
+	provider.on('field-focused', (fieldId, user) => {
 		fieldFocuses.update((focuses) => {
 			const updated = { ...focuses };
 
@@ -131,10 +137,7 @@ export function initializeCollaboration() {
 		});
 	});
 
-	socket.on('field-updated', (fieldId, value, userId) => {
-		const currentUserData = get(currentUser);
-		if (currentUserData && userId === currentUserData.id) return;
-
+	provider.on('field-updated', (fieldId, value, userId) => {
 		console.log('Field updated:', fieldId, value, 'by user:', userId);
 
 		if (typeof window !== 'undefined') {
@@ -146,11 +149,11 @@ export function initializeCollaboration() {
 		}
 	});
 
-	socket.on('settings-updated', (config, userId) => {
+	provider.on('settings-updated', (config, userId) => {
 		console.log('Settings updated by user:', userId, 'Config:', config);
 	});
 
-	socket.on('user-typing-status', (fieldId, userId, isTyping) => {
+	provider.on('user-typing-status', (fieldId, userId, isTyping) => {
 		typingUsers.update((typing) => {
 			const updated = { ...typing };
 
@@ -173,55 +176,34 @@ export function initializeCollaboration() {
 			return updated;
 		});
 	});
-
-	socket.on('collaboration-error', (message) => {
-		console.error('Collaboration error:', message);
-		connectionError.set(message);
-	});
-
-	return socket;
 }
 
-export function joinSession(
+export async function joinSession(
 	sessionId: string,
 	userData?: Partial<CollaborationUser>,
 	isHost: boolean = false
-) {
-	if (!socket) {
-		console.error('Socket not initialized when trying to join session');
+): Promise<boolean> {
+	if (!provider) {
+		console.error('Provider not initialized when trying to join session');
 		return false;
 	}
 
 	console.log(
 		'Attempting to join session:',
 		sessionId,
-		'Socket connected:',
-		socket.connected,
+		'Provider connected:',
+		provider.isConnected,
 		'Is host:',
 		isHost
 	);
-	currentSessionId = sessionId;
 
-	const hostProStatusValue = isHost ? isProUnlocked() : false;
-	console.log('Host Pro status:', hostProStatusValue, 'isHost:', isHost);
-
-	if (socket.connected) {
-		socket.emit('join-session', sessionId, userData, hostProStatusValue);
-	} else {
-		socket.once('connect', () => {
-			console.log('Socket connected, now joining session:', sessionId);
-			socket!.emit('join-session', sessionId, userData, hostProStatusValue);
-		});
-	}
-
-	return true;
+	return provider.joinSession(sessionId, userData, isHost);
 }
 
 export function leaveSession() {
-	if (!socket || !currentSessionId) return;
+	if (!provider) return;
 
-	socket.emit('leave-session', currentSessionId);
-	currentSessionId = null;
+	provider.leaveSession();
 	currentUser.set(null);
 	collaborators.set([]);
 	fieldFocuses.set({});
@@ -230,27 +212,23 @@ export function leaveSession() {
 }
 
 export function focusField(fieldId: string | null) {
-	if (!socket || !currentSessionId) return;
-
-	socket.emit('field-focus', currentSessionId, fieldId);
+	if (!provider) return;
+	provider.focusField(fieldId);
 }
 
 export function updateField(fieldId: string, value: unknown) {
-	if (!socket || !currentSessionId) return;
-
-	socket.emit('field-update', currentSessionId, fieldId, value);
+	if (!provider) return;
+	provider.updateField(fieldId, value);
 }
 
 export function updateSettings(config: Record<string, unknown>) {
-	if (!socket || !currentSessionId) return;
-
-	socket.emit('settings-update', currentSessionId, config);
+	if (!provider) return;
+	provider.updateSettings(config);
 }
 
 export function setTypingStatus(fieldId: string, isTyping: boolean) {
-	if (!socket || !currentSessionId) return;
-
-	socket.emit('user-typing', currentSessionId, fieldId, isTyping);
+	if (!provider) return;
+	provider.setTypingStatus(fieldId, isTyping);
 }
 
 export const totalUsers = derived([currentUser, collaborators], ([current, collaborators]) =>
@@ -279,10 +257,9 @@ export const effectiveProStatus = derived([hostProStatus], ([hostPro]) => {
 });
 
 export function disconnectCollaboration() {
-	if (socket) {
-		socket.disconnect();
-		socket = null;
-		currentSessionId = null;
+	if (provider) {
+		provider.cleanup();
+		provider = null;
 	}
 
 	if (typeof localStorage !== 'undefined') {
