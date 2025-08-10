@@ -47,7 +47,6 @@
  */
 
 import { json } from '@sveltejs/kit';
-import { STRIPE_CONFIG } from '$lib/server/stripe-config';
 import type { RequestHandler } from './$types';
 
 const proUsers = new Set<string>();
@@ -66,10 +65,11 @@ interface StripeWebhookEvent {
 	};
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isValidWebhook(payload: any, signature: string): boolean {
 	// For now, just check if the payload has the expected structure
 	// In production, verify the signature using Stripe's webhook secret
-	return payload && typeof payload === 'object' && payload.type && payload.data;
+	return payload && typeof payload === 'object' && payload.type && payload.data && signature;
 }
 
 function processSuccessfulPayment(event: StripeWebhookEvent): boolean {

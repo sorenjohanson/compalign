@@ -27,12 +27,10 @@
 	import {
 		initializeCollaboration,
 		joinSession,
-		isInSession,
 		effectiveProStatus
 	} from '$lib/stores/collaboration';
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import { isCollaborationEnabled } from '$lib/feature-flags';
 
 	const savedInputs = loadInputValuesFromStorage();
 	let grossSalary = $state(savedInputs.grossSalary);
@@ -51,9 +49,6 @@
 
 	let calculation = $derived(calculateSalaryBreakdown(grossSalary, customerRate, config));
 	let strategicInsights = $derived(generateStrategicInsights(calculation, config));
-	let marginStatus = $derived(
-		getMarginStatus(calculation.netMarginPercentage, config.targetNetMargin)
-	);
 
 	// Industry margins state - always provide data for display
 	let industryBenchmarks: IndustryBenchmark[] = $state(mockIndustryBenchmarks);

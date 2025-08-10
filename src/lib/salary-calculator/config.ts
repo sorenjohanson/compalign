@@ -1,4 +1,10 @@
-import type { CalculatorConfig, InputValues, IndustryBenchmark, MarginComparison } from './types';
+import type {
+	CalculatorConfig,
+	InputValues,
+	IndustryBenchmark,
+	MarginComparison,
+	SalaryCalculation
+} from './types';
 
 export const defaultConfig: CalculatorConfig = {
 	employerSocialContributionRate: 0.2, // 20%
@@ -38,7 +44,7 @@ export const mockIndustryBenchmarks: IndustryBenchmark[] = [
 	}
 ];
 
-export function generateMockMarginComparison(calculation: any): MarginComparison {
+export function generateMockMarginComparison(calculation: SalaryCalculation): MarginComparison {
 	return {
 		yourNetMargin: calculation.netMarginPercentage,
 		yourGrossMargin: calculation.grossMarginPercentage,

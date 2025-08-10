@@ -9,7 +9,6 @@
 	} from '@lucide/svelte';
 	import * as Card from '$lib/components/ui/card';
 	import { formatCurrency, formatPercentage, getMarginStatus } from '$lib/salary-calculator';
-	import type { SalaryCalculation, CalculatorConfig } from '$lib/salary-calculator';
 
 	let { calculation, config } = $props();
 

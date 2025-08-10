@@ -5,7 +5,6 @@ import type {
 	IndustryBenchmark,
 	MarginComparison
 } from './types';
-import { defaultConfig } from './config';
 import { formatCurrency, formatPercentage } from './formatting';
 
 export function generateStrategicInsights(

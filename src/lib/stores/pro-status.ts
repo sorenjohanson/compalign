@@ -50,7 +50,7 @@ function saveProStatus(status: ProStatus) {
 	}
 }
 
-const { subscribe, set, update } = writable<ProStatus>(loadProStatus());
+const { subscribe, update } = writable<ProStatus>(loadProStatus());
 
 export const proStatus = {
 	subscribe,

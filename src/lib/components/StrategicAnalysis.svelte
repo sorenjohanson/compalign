@@ -8,7 +8,6 @@
 		Clock
 	} from '@lucide/svelte';
 	import * as Card from '$lib/components/ui/card';
-	import type { SalaryCalculation, NegotiationInsight } from '$lib/salary-calculator';
 
 	let { calculation, strategicInsights } = $props();
 </script>
