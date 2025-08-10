@@ -2,7 +2,7 @@
  * OpenAPI specification for the CompAlign Collaboration API
  */
 import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types.js';
+import type { RequestHandler } from './$types';
 
 const openApiSpec = {
 	openapi: '3.0.3',

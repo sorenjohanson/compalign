@@ -65,8 +65,8 @@
  */
 
 import { json } from '@sveltejs/kit';
-import { isCollaborationApiEnabled } from '$lib/feature-flags.js';
-import type { RequestHandler } from './$types.js';
+import { isCollaborationApiEnabled } from '$lib/feature-flags';
+import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url }) => {
 	if (!isCollaborationApiEnabled()) {
@@ -74,7 +74,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 
 	try {
-		const { getActiveSession, generateShareableLink } = await import('$lib/collaboration.js');
+		const { getActiveSession, generateShareableLink } = await import('$lib/collaboration');
 
 		const session = getActiveSession();
 

@@ -108,9 +108,9 @@
  */
 
 import { json } from '@sveltejs/kit';
-import { verifyOTP, getSharedSession } from '$lib/collaboration.js';
-import { isCollaborationApiEnabled } from '$lib/feature-flags.js';
-import type { RequestHandler } from './$types.js';
+import { verifyOTP, getSharedSession } from '$lib/collaboration';
+import { isCollaborationApiEnabled } from '$lib/feature-flags';
+import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ params, request }) => {
 	if (!isCollaborationApiEnabled()) {

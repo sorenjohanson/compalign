@@ -4,15 +4,14 @@
 		defaultConfig,
 		clearSettingsFromStorage,
 		validateFuzzyHours,
-		isProUnlocked,
-		unlockPro,
-		lockPro,
 		calculateSalaryBreakdown
-	} from '../salary-calculator.js';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import * as Card from '$lib/components/ui/card/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
+	} from '$lib/salary-calculator';
+	import { proStatus } from '$lib/stores/pro-status';
+	import { getPaymentLink, isPaymentLinkError } from '$lib/services/stripe-client';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import * as Card from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
 	import { Settings, Lock, Unlock } from '@lucide/svelte';
 
 	interface Props {
@@ -27,7 +26,9 @@
 
 	let tempConfig = $state({ ...config });
 	let resetConfirmation = $state(false);
-	let isProEnabled = $state(isProUnlocked());
+	
+	// Use the new Pro status store
+	let isProEnabled = $derived($proStatus.isUnlocked);
 
 	// Reactive variables for percentage inputs (display as whole numbers)
 	let employerRatePercent = $state(config.employerSocialContributionRate * 100);
@@ -50,7 +51,6 @@
 			targetNetMarginPercent = config.targetNetMargin;
 			overheadPercent = config.overheadAsPercentOfRevenue * 100;
 			resetConfirmation = false;
-			isProEnabled = isProUnlocked();
 		}
 	});
 
@@ -81,14 +81,29 @@
 		}
 	}
 
-	function handleProToggle() {
+	async function handleProToggle() {
 		if (isProEnabled) {
-			lockPro();
+			onProStatusChange?.();
 		} else {
-			unlockPro();
+			// Get payment link from server and redirect to Stripe
+			try {
+				const userId = proStatus.getUserId();
+				const response = await getPaymentLink(userId || undefined);
+				
+				if (isPaymentLinkError(response)) {
+					console.error('Failed to get payment link:', response.error);
+					// Fallback - could show an error message to user
+					alert('Unable to load payment page. Please try again.');
+					return;
+				}
+				
+				// Redirect to Stripe payment
+				window.open(response.paymentLink, '_blank');
+			} catch (error) {
+				console.error('Error getting payment link:', error);
+				alert('Unable to load payment page. Please try again.');
+			}
 		}
-		isProEnabled = !isProEnabled;
-		onProStatusChange?.();
 	}
 </script>
 
@@ -120,22 +135,17 @@
 							<span class="font-medium text-blue-700 dark:text-blue-300">Pro Features</span>
 						{/if}
 					</div>
-					<Button
-						variant={isProEnabled ? 'outline' : 'default'}
-						size="sm"
-						onclick={handleProToggle}
-						class={isProEnabled
-							? 'border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300'
-							: 'bg-blue-600 text-white hover:bg-blue-700'}
-					>
-						{#if isProEnabled}
-							<Lock class="mr-2 h-4 w-4" />
-							Lock Pro
-						{:else}
+					{#if !isProEnabled}
+						<Button
+							variant={isProEnabled ? 'outline' : 'default'}
+							size="sm"
+							onclick={handleProToggle}
+							class="bg-blue-600 text-white hover:bg-blue-700"
+						>
 							<Unlock class="mr-2 h-4 w-4" />
 							Unlock Pro
-						{/if}
-					</Button>
+						</Button>
+					{/if}
 				</div>
 				<div class="text-sm text-muted-foreground">
 					{#if isProEnabled}
@@ -438,7 +448,7 @@
 						<div class="flex justify-between">
 							<span class="text-muted-foreground">Target net margin:</span>
 							<span class="font-medium">
-								{targetNetMarginPercent}%
+								{targetNetMarginPercent.toFixed(1)}%
 							</span>
 						</div>
 					</div>

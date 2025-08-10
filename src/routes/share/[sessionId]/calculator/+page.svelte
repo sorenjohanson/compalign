@@ -3,7 +3,8 @@
 		calculateSalaryBreakdown,
 		generateStrategicInsights,
 		generateMarginComparison,
-		industryBenchmarks,
+		generateMockMarginComparison,
+		mockIndustryBenchmarks,
 		formatCurrency,
 		formatPercentage,
 		getMarginStatus,
@@ -12,8 +13,12 @@
 		loadInputValuesFromStorage,
 		saveInputValuesToStorage,
 		isProUnlocked,
-		type CalculatorConfig
+		type CalculatorConfig,
+		type IndustryBenchmark,
+		type MarginComparison
 	} from '$lib/salary-calculator';
+	import { fetchIndustryMargins, isIndustryMarginError } from '$lib/services/industry-margins';
+	import { proStatus } from '$lib/stores/pro-status';
 	import SettingsDialog from '$lib/components/SettingsDialog.svelte';
 	import MarginComparisonChart from '$lib/components/MarginComparisonChart.svelte';
 	import CollaborativeFormattedNumberInput from '$lib/components/CollaborativeFormattedNumberInput.svelte';
@@ -68,10 +73,67 @@
 
 	let calculation = $derived(calculateSalaryBreakdown(grossSalary, customerRate, config));
 	let strategicInsights = $derived(generateStrategicInsights(calculation, config));
-	let marginComparison = $derived(generateMarginComparison(calculation));
 	let marginStatus = $derived(
 		getMarginStatus(calculation.netMarginPercentage, config.targetNetMargin)
 	);
+
+	// Industry margins state - always provide data for display
+	let industryBenchmarks: IndustryBenchmark[] = $state(mockIndustryBenchmarks);
+	let marginComparison: MarginComparison | undefined = $state();
+	let industryDataLoading = $state(false);
+	let industryDataError = $state<string | null>(null);
+
+	// Update margin comparison when calculation changes
+	$effect(() => {
+		const isProEnabledForRequest = $effectiveProStatus || $proStatus.isUnlocked;
+		if (!isProEnabledForRequest || industryBenchmarks === mockIndustryBenchmarks) {
+			marginComparison = generateMockMarginComparison(calculation);
+		} else {
+			marginComparison = generateMarginComparison(calculation, industryBenchmarks);
+		}
+	});
+
+	// Load industry margins when Pro status changes
+	$effect(() => {
+		const loadIndustryMargins = async () => {
+		const isProEnabledForRequest = $effectiveProStatus || $proStatus.isUnlocked;
+		if (isProEnabledForRequest) {
+			industryDataLoading = true;
+			industryDataError = null;
+			
+			try {
+				const userId = proStatus.getUserId();
+				const response = await fetchIndustryMargins(userId);
+				if (isIndustryMarginError(response)) {
+					industryDataError = response.error;
+					// Fall back to mock data on error
+					industryBenchmarks = mockIndustryBenchmarks;
+					marginComparison = generateMockMarginComparison(calculation);
+				} else {
+					industryBenchmarks = response.benchmarks;
+					// Generate margin comparison with fetched data
+					marginComparison = generateMarginComparison(calculation, response.benchmarks);
+				}
+			} catch (error) {
+				console.error('Failed to load industry margins:', error);
+				industryDataError = 'Failed to load industry data';
+				// Fall back to mock data on error
+				industryBenchmarks = mockIndustryBenchmarks;
+				marginComparison = generateMockMarginComparison(calculation);
+			} finally {
+				industryDataLoading = false;
+			}
+		} else {
+			// Use mock data when Pro access is not available
+			industryBenchmarks = mockIndustryBenchmarks;
+			marginComparison = generateMockMarginComparison(calculation);
+			industryDataError = null;
+			industryDataLoading = false;
+		}
+		};
+		
+		loadIndustryMargins();
+	});
 
 	function handleSettingsClose() {
 		showSettings = false;
@@ -705,8 +767,25 @@
 					</Card.Description>
 				</Card.Header>
 				<Card.Content class="relative">
+					<!-- Always show chart content -->
 					<div class={!isProEnabled ? 'pointer-events-none blur-sm' : ''}>
-						<MarginComparisonChart benchmarks={industryBenchmarks} comparison={marginComparison} />
+						{#if industryDataLoading && isProEnabled}
+							<div class="flex items-center justify-center p-8">
+								<div class="text-center">
+									<div class="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+									<p class="mt-2 text-sm text-muted-foreground">Loading industry data...</p>
+								</div>
+							</div>
+						{:else if industryDataError && isProEnabled}
+							<div class="flex items-center justify-center p-8">
+								<div class="text-center">
+									<p class="text-sm text-destructive">Failed to load industry data</p>
+									<p class="mt-1 text-xs text-muted-foreground">{industryDataError}</p>
+								</div>
+							</div>
+						{:else if marginComparison}
+							<MarginComparisonChart benchmarks={industryBenchmarks} comparison={marginComparison} />
+						{/if}
 					</div>
 
 					{#if !isProEnabled}
