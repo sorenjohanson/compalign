@@ -2,7 +2,6 @@ export const STRIPE_CONFIG = {
 	PAYMENT_LINK: process.env.STRIPE_PAYMENT_LINK,
 	WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
 	PRODUCT_NAME: 'Salary Calculator Pro',
-	PRICE: parseFloat(process.env.STRIPE_PRICE || '0'),
 	CURRENCY: 'eur'
 };
 

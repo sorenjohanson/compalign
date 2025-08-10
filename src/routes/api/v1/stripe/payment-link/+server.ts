@@ -59,7 +59,6 @@ export const GET: RequestHandler = async ({ url }) => {
 		return json({
 			paymentLink,
 			productName: STRIPE_CONFIG.PRODUCT_NAME,
-			price: STRIPE_CONFIG.PRICE,
 			currency: STRIPE_CONFIG.CURRENCY
 		});
 	} catch (error) {
