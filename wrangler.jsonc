@@ -3,6 +3,7 @@
   "name": "compalign",
   "main": ".svelte-kit/output/server/index.js",
   "compatibility_date": "2025-08-11",
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
   
   // Environment variables for Supabase integration
