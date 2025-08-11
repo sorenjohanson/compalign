@@ -57,7 +57,6 @@
 	}
 
 	let typingTimeout: ReturnType<typeof setTimeout>;
-	let blurTimeout: ReturnType<typeof setTimeout>;
 	let displayValue = $state('');
 	let isExternalUpdate = false;
 
@@ -80,7 +79,6 @@
 	});
 
 	function handleFocus() {
-		clearTimeout(blurTimeout);
 		focusField(fieldId);
 	}
 
@@ -133,7 +131,6 @@
 
 	onDestroy(() => {
 		clearTimeout(typingTimeout);
-		clearTimeout(blurTimeout);
 	});
 </script>
 

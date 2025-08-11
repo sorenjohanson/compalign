@@ -11,8 +11,8 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
 	import { Settings, Lock, Unlock } from '@lucide/svelte';
+	import CollaborativeFormattedNumberInput from '$lib/components/CollaborativeFormattedNumberInput.svelte';
 
 	interface Props {
 		open: boolean;
@@ -167,9 +167,8 @@
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="space-y-2">
 						<label for="workingDaysPerWeek" class="text-sm font-medium">Working Days / Week</label>
-						<Input
-							id="workingDaysPerWeek"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.workingDaysPerWeek"
 							bind:value={tempConfig.workingDaysPerWeek}
 							min="4"
 							max="6"
@@ -179,9 +178,8 @@
 					</div>
 					<div class="space-y-2">
 						<label for="hoursPerDay" class="text-sm font-medium">Hours / Day</label>
-						<Input
-							id="hoursPerDay"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.hoursPerWorkingDay"
 							bind:value={tempConfig.hoursPerWorkingDay}
 							min="6"
 							max="10"
@@ -198,9 +196,8 @@
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="space-y-2">
 						<label for="vacationDays" class="text-sm font-medium">Vacation</label>
-						<Input
-							id="vacationDays"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.vacationDays"
 							bind:value={tempConfig.vacationDays}
 							min="20"
 							max="50"
@@ -210,9 +207,8 @@
 					</div>
 					<div class="space-y-2">
 						<label for="sickDays" class="text-sm font-medium">Sick Days</label>
-						<Input
-							id="sickDays"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.sickDaysEstimate"
 							bind:value={tempConfig.sickDaysEstimate}
 							min="0"
 							max="30"
@@ -222,9 +218,8 @@
 					</div>
 					<div class="space-y-2">
 						<label for="trainingDays" class="text-sm font-medium">Training</label>
-						<Input
-							id="trainingDays"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.trainingDays"
 							bind:value={tempConfig.trainingDays}
 							min="0"
 							max="30"
@@ -234,9 +229,8 @@
 					</div>
 					<div class="space-y-2">
 						<label for="publicHolidays" class="text-sm font-medium">Holidays</label>
-						<Input
-							id="publicHolidays"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.publicHolidays"
 							bind:value={tempConfig.publicHolidays}
 							min="9"
 							max="15"
@@ -258,9 +252,8 @@
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="space-y-2">
 						<label for="internalMeetings" class="text-sm font-medium">Meetings</label>
-						<Input
-							id="internalMeetings"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.internalMeetingsHours"
 							bind:value={tempConfig.internalMeetingsHours}
 							min="0"
 							max="20"
@@ -270,9 +263,8 @@
 					</div>
 					<div class="space-y-2">
 						<label for="adminTasks" class="text-sm font-medium">Admin</label>
-						<Input
-							id="adminTasks"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.adminTasksHours"
 							bind:value={tempConfig.adminTasksHours}
 							min="0"
 							max="10"
@@ -282,9 +274,8 @@
 					</div>
 					<div class="space-y-2">
 						<label for="salesDemos" class="text-sm font-medium">Sales</label>
-						<Input
-							id="salesDemos"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.salesDemosHours"
 							bind:value={tempConfig.salesDemosHours}
 							min="0"
 							max="20"
@@ -294,9 +285,8 @@
 					</div>
 					<div class="space-y-2">
 						<label for="businessDev" class="text-sm font-medium">Business Dev</label>
-						<Input
-							id="businessDev"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.businessDevelopmentHours"
 							bind:value={tempConfig.businessDevelopmentHours}
 							min="0"
 							max="10"
@@ -313,9 +303,8 @@
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="space-y-2">
 						<label for="employerRate" class="text-sm font-medium">Employer Costs (%)</label>
-						<Input
-							id="employerRate"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.employerRatePercent"
 							bind:value={employerRatePercent}
 							min="15"
 							max="25"
@@ -327,9 +316,8 @@
 					</div>
 					<div class="space-y-2">
 						<label for="overheadPercent" class="text-sm font-medium">Overhead (%)</label>
-						<Input
-							id="overheadPercent"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.overheadPercent"
 							bind:value={overheadPercent}
 							min="5"
 							max="40"
@@ -343,9 +331,8 @@
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div class="space-y-2">
 						<label for="targetMargin" class="text-sm font-medium">Target Net Margin (%)</label>
-						<Input
-							id="targetMargin"
-							type="number"
+						<CollaborativeFormattedNumberInput
+							fieldId="settings.targetNetMarginPercent"
 							bind:value={targetNetMarginPercent}
 							min="5"
 							max="50"
