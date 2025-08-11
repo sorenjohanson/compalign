@@ -47,20 +47,19 @@
  */
 
 import { json } from '@sveltejs/kit';
-import { generatePaymentLink, getStripeConfig } from '$lib/server/stripe-config';
+import { generatePaymentLink, STRIPE_CONFIG } from '$lib/server/stripe-config';
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = async ({ url, platform }) => {
+export const GET: RequestHandler = async ({ url }) => {
 	try {
 		const userId = url.searchParams.get('userId');
 
-		const paymentLink = generatePaymentLink(userId || undefined, platform);
-		const config = getStripeConfig(platform);
+		const paymentLink = generatePaymentLink(userId || undefined);
 
 		return json({
 			paymentLink,
-			productName: config.PRODUCT_NAME,
-			currency: config.CURRENCY
+			productName: STRIPE_CONFIG.PRODUCT_NAME,
+			currency: STRIPE_CONFIG.CURRENCY
 		});
 	} catch (error) {
 		console.error('Error generating payment link:', error);
