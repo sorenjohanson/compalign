@@ -23,7 +23,7 @@
 		<Alert.Root class="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
 			<Users class="h-4 w-4" />
 			<Alert.Description>
-				You're now viewing a shared salary calculation. The values have been loaded automatically.
+				You've joined a shared CompAlign session. The values have been loaded automatically.
 			</Alert.Description>
 		</Alert.Root>
 	</div>

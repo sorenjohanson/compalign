@@ -15,7 +15,7 @@
 		AlertCircle,
 		Trash2
 	} from '@lucide/svelte';
-	import { initializeCollaboration, joinSession } from '$lib/stores/collaboration';
+	import { initializeCollaboration, joinSession, broadcastSessionTermination } from '$lib/stores/collaboration';
 	import type { CalculatorConfig } from '$lib/salary-calculator';
 
 	interface Props {
@@ -138,7 +138,10 @@
 
 	async function deactivateSession() {
 		isDeactivating = true;
+		error = '';
 		try {
+			broadcastSessionTermination();
+			
 			const response = await fetch('/api/v1/share/deactivate', {
 				method: 'POST'
 			});
@@ -146,9 +149,14 @@
 			if (response.ok) {
 				activeSession = null;
 				stopOTPTimer();
+			} else {
+				const result = await response.json();
+				error = result.error || 'Failed to deactivate session';
+				console.error('Deactivation failed:', error);
 			}
 		} catch (err) {
 			console.error('Failed to deactivate session:', err);
+			error = 'Network error during deactivation';
 		} finally {
 			isDeactivating = false;
 		}
@@ -215,7 +223,7 @@
 				Collaboration Link
 			</Dialog.Title>
 			<Dialog.Description>
-				Share your salary calculation securely with a rotating access code
+				Share your CompAlign session with a shared access code.
 			</Dialog.Description>
 		</Dialog.Header>
 
@@ -299,7 +307,7 @@
 						</div>
 
 						<div>
-							<label for="otp-code" class="mb-2 block flex items-center gap-2 text-sm font-medium">
+							<label for="otp-code" class="mb-2 flex items-center gap-2 text-sm font-medium">
 								<Key class="h-3 w-3" />
 								Current Access Code
 								<Badge variant="secondary" class="ml-auto flex items-center gap-1">

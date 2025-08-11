@@ -28,7 +28,6 @@ export interface CollaborationSession {
 }
 
 export interface SocketEvents {
-	// Client -> Server
 	'join-session': (
 		sessionId: string,
 		userData?: Partial<CollaborationUser>,
@@ -39,8 +38,8 @@ export interface SocketEvents {
 	'field-update': (sessionId: string, fieldId: string, value: unknown) => void;
 	'settings-update': (sessionId: string, config: Record<string, unknown>) => void;
 	'user-typing': (sessionId: string, fieldId: string, isTyping: boolean) => void;
-
-	// Server -> Client
+	'user-heartbeat': (sessionId: string) => void;
+	'terminate-session': (sessionId: string) => void;
 	'session-joined': (
 		user: CollaborationUser,
 		users: CollaborationUser[],
@@ -53,6 +52,7 @@ export interface SocketEvents {
 	'field-updated': (fieldId: string, value: unknown, userId: string) => void;
 	'settings-updated': (config: Record<string, unknown>, userId: string) => void;
 	'user-typing-status': (fieldId: string, userId: string, isTyping: boolean) => void;
+	'session-terminated': () => void;
 	'collaboration-error': (message: string) => void;
 }
 

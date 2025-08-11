@@ -36,7 +36,7 @@
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import {
 		Settings,
-		Calculator,
+		AlignHorizontalDistributeCenter,
 		TrendingUp,
 		Euro,
 		Clock,
@@ -55,6 +55,7 @@
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 	import { isCollaborationEnabled } from '$lib/feature-flags';
+	import SessionTerminatedDialog from '$lib/components/SessionTerminatedDialog.svelte';
 
 	const sessionId = $page.params.sessionId as string;
 
@@ -66,6 +67,7 @@
 	let isFreelancerMode = $state(false);
 	let isProEnabled = $derived($effectiveProStatus);
 	let showSharedAlert = $state(true);
+	let showTerminatedDialog = $state(false);
 
 	$effect(() => {
 		saveInputValuesToStorage({ grossSalary, customerRate });
@@ -166,6 +168,11 @@
 		window.location.href = '/';
 	}
 
+	function handleSessionTerminated() {
+		console.log('Session terminated event received');
+		showTerminatedDialog = true;
+	}
+
 	onMount(() => {
 		if (browser) {
 			if (!isCollaborationEnabled()) {
@@ -180,6 +187,8 @@
 				'collaboration-field-update',
 				handleCollaborationFieldUpdate as EventListener
 			);
+
+			window.addEventListener('session-terminated', handleSessionTerminated);
 
 			const sharedData = localStorage.getItem('shared-calculator-data');
 			const isSharedFlag = localStorage.getItem('is-shared-session');
@@ -219,13 +228,14 @@
 					'collaboration-field-update',
 					handleCollaborationFieldUpdate as EventListener
 				);
+				window.removeEventListener('session-terminated', handleSessionTerminated);
 			}
 		};
 	});
 </script>
 
 <svelte:head>
-	<title>Collaborative Session - Rate Transparency Calculator</title>
+	<title>Collaborative Session - CompAlign</title>
 </svelte:head>
 
 <div
@@ -251,8 +261,8 @@
 				</div>
 				<div class="flex flex-col items-center text-center">
 					<div class="mb-2 flex items-center justify-center gap-2 sm:gap-3">
-						<Calculator class="hidden h-12 w-12 text-primary md:block" />
-						<h1 class="text-3xl font-bold">Rate Transparency Calculator</h1>
+						<AlignHorizontalDistributeCenter class="hidden h-12 w-12 text-primary md:block" />
+						<h1 class="text-3xl font-bold">CompAlign</h1>
 					</div>
 					<div class="flex items-center gap-2">
 						<Badge variant="secondary" class="flex items-center gap-1">
@@ -826,3 +836,6 @@
 	onSave={handleSettingsSave}
 	onProStatusChange={handleProStatusChange}
 />
+
+<!-- Session Terminated Dialog -->
+<SessionTerminatedDialog bind:open={showTerminatedDialog} />

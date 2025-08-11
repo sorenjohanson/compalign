@@ -10,6 +10,7 @@ export interface CollaborationEvents {
 	) => void;
 	'user-joined': (user: CollaborationUser) => void;
 	'user-left': (userId: string) => void;
+	'session-terminated': () => void;
 	'field-focused': (fieldId: string | null, user: CollaborationUser) => void;
 	'field-updated': (fieldId: string, value: unknown, userId: string) => void;
 	'settings-updated': (config: Record<string, unknown>, userId: string) => void;
@@ -38,6 +39,7 @@ export interface CollaborationProvider {
 	updateField(fieldId: string, value: unknown): void;
 	updateSettings(config: Record<string, unknown>): void;
 	setTypingStatus(fieldId: string, isTyping: boolean): void;
+	broadcastSessionTermination(): void;
 
 	on<T extends keyof CollaborationEvents>(event: T, callback: EventCallback<T>): void;
 	off<T extends keyof CollaborationEvents>(event: T, callback: EventCallback<T>): void;
@@ -107,6 +109,7 @@ export abstract class BaseCollaborationProvider implements CollaborationProvider
 	abstract updateField(fieldId: string, value: unknown): void;
 	abstract updateSettings(config: Record<string, unknown>): void;
 	abstract setTypingStatus(fieldId: string, isTyping: boolean): void;
+	abstract broadcastSessionTermination(): void;
 
 	cleanup(): void {
 		this._eventListeners.clear();

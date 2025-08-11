@@ -20,24 +20,21 @@ let provider: CollaborationProvider | null = null;
 
 export function initializeCollaboration() {
 	if (!browser || provider) {
-		console.log('Collaboration already initialized or not in browser');
 		return provider;
 	}
 
 	if (!isCollaborationEnabled()) {
-		console.log('Collaboration features are disabled');
 		return null;
 	}
 
-	console.log('Initializing collaboration provider...');
 	provider = createCollaborationProvider();
 
 	if (!provider) {
-		console.log('No collaboration provider available');
 		return null;
 	}
 
 	setupProviderListeners();
+	setupWindowEventListeners();
 	provider.connect();
 
 	return provider;
@@ -47,13 +44,11 @@ function setupProviderListeners() {
 	if (!provider) return;
 
 	provider.on('connect', () => {
-		console.log('Connected to collaboration server');
 		isConnected.set(true);
 		connectionError.set(null);
 	});
 
 	provider.on('disconnect', () => {
-		console.log('Disconnected from collaboration server');
 		isConnected.set(false);
 		collaborators.set([]);
 		fieldFocuses.set({});
@@ -61,28 +56,17 @@ function setupProviderListeners() {
 	});
 
 	provider.on('collaboration-error', (message) => {
-		console.error('Collaboration error:', message);
 		isConnected.set(false);
 		connectionError.set(message);
 	});
 
 	provider.on('session-joined', (user, users, sessionHostProStatus) => {
-		console.log(
-			'✅ Successfully joined session as:',
-			user.name,
-			'Session has',
-			users.length,
-			'total users',
-			'Host Pro:',
-			sessionHostProStatus
-		);
 		currentUser.set(user);
 		collaborators.set(users.filter((u) => u.id !== user.id));
 		hostProStatus.set(sessionHostProStatus);
 	});
 
 	provider.on('user-joined', (user) => {
-		console.log('👋 New user joined session:', user.name, 'Color:', user.color);
 		collaborators.update((users) => {
 			const existing = users.find((u) => u.id === user.id);
 			if (existing) {
@@ -94,7 +78,6 @@ function setupProviderListeners() {
 	});
 
 	provider.on('user-left', (userId) => {
-		console.log('User left:', userId);
 		collaborators.update((users) => users.filter((u) => u.id !== userId));
 
 		fieldFocuses.update((focuses) => {
@@ -123,12 +106,14 @@ function setupProviderListeners() {
 		fieldFocuses.update((focuses) => {
 			const updated = { ...focuses };
 
+			// Remove user's previous focus from other fields
 			Object.keys(updated).forEach((key) => {
 				if (updated[key].id === user.id) {
 					delete updated[key];
 				}
 			});
 
+			// Set user's new focus if fieldId is provided
 			if (fieldId) {
 				updated[fieldId] = user;
 			}
@@ -138,8 +123,6 @@ function setupProviderListeners() {
 	});
 
 	provider.on('field-updated', (fieldId, value, userId) => {
-		console.log('Field updated:', fieldId, value, 'by user:', userId);
-
 		if (typeof window !== 'undefined') {
 			window.dispatchEvent(
 				new CustomEvent('collaboration-field-update', {
@@ -150,7 +133,7 @@ function setupProviderListeners() {
 	});
 
 	provider.on('settings-updated', (config, userId) => {
-		console.log('Settings updated by user:', userId, 'Config:', config);
+		// Settings updated by other users
 	});
 
 	provider.on('user-typing-status', (fieldId, userId, isTyping) => {
@@ -176,6 +159,40 @@ function setupProviderListeners() {
 			return updated;
 		});
 	});
+
+	provider.on('session-terminated', () => {
+		
+		currentUser.set(null);
+		collaborators.set([]);
+		fieldFocuses.set({});
+		typingUsers.set({});
+		isConnected.set(false);
+		hostProStatus.set(false);
+		
+		if (typeof window !== 'undefined') {
+			window.dispatchEvent(new CustomEvent('session-terminated'));
+		}
+	});
+}
+
+function setupWindowEventListeners() {
+	if (!browser) return;
+
+	const handleUsersUpdated = (event: CustomEvent) => {
+		const { users } = event.detail;
+		collaborators.set(users);
+	};
+
+	const handleDocumentClick = (event: Event) => {
+		const target = event.target as HTMLElement;
+		// If click is outside any collaborative input, clear focus
+		if (!target.closest('[data-collaborative-input]')) {
+			focusField(null);
+		}
+	};
+
+	window.addEventListener('collaboration-users-updated', handleUsersUpdated as EventListener);
+	document.addEventListener('click', handleDocumentClick);
 }
 
 export async function joinSession(
@@ -209,6 +226,7 @@ export function leaveSession() {
 	fieldFocuses.set({});
 	typingUsers.set({});
 	hostProStatus.set(false);
+	
 }
 
 export function focusField(fieldId: string | null) {
@@ -229,6 +247,22 @@ export function updateSettings(config: Record<string, unknown>) {
 export function setTypingStatus(fieldId: string, isTyping: boolean) {
 	if (!provider) return;
 	provider.setTypingStatus(fieldId, isTyping);
+}
+
+export function broadcastSessionTermination() {
+	if (!browser) {
+		console.warn('broadcastSessionTermination called on server-side, skipping');
+		return;
+	}
+	
+	if (!provider) {
+		console.warn('No collaboration provider available for session termination');
+		return;
+	}
+	
+	if ('broadcastSessionTermination' in provider && typeof provider.broadcastSessionTermination === 'function') {
+		provider.broadcastSessionTermination();
+	}
 }
 
 export const totalUsers = derived([currentUser, collaborators], ([current, collaborators]) =>
@@ -255,6 +289,7 @@ export const effectiveProStatus = derived([hostProStatus], ([hostPro]) => {
 	);
 	return localPro || hostPro;
 });
+
 
 export function disconnectCollaboration() {
 	if (provider) {

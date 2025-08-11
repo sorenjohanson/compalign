@@ -33,6 +33,7 @@
 import { json } from '@sveltejs/kit';
 import { deactivateSession } from '$lib/collaboration';
 import { isCollaborationApiEnabled } from '$lib/feature-flags';
+import { getCollaborationMode } from '$lib/collaboration/providers';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async () => {
@@ -40,7 +41,11 @@ export const POST: RequestHandler = async () => {
 		return json({ error: 'Collaboration features are disabled' }, { status: 404 });
 	}
 
-	try {
+	try {		
+		if (getCollaborationMode() === 'supabase') {
+			// TODO: Add database deletion when we have the session ID from request
+		}
+		
 		deactivateSession();
 
 		return json({ success: true });

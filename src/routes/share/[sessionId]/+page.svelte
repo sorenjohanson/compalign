@@ -91,10 +91,9 @@
 				>
 					<Users class="h-6 w-6 text-blue-600 dark:text-blue-300" />
 				</div>
-				<Card.Title class="text-2xl">Join Shared Calculator</Card.Title>
+				<Card.Title class="text-2xl">Join CompAlign Session</Card.Title>
 				<Card.Description>
-					Enter the 6-character access code to view the shared salary calculation (letters will be
-					automatically capitalized)
+					Enter the 6-character access code to join the shared CompAlign session
 				</Card.Description>
 			</Card.Header>
 			<Card.Content class="space-y-6">
@@ -138,13 +137,13 @@
 							Verifying...
 						{:else}
 							<Lock class="mr-2 h-4 w-4" />
-							Access Calculator
+							Access CompAlign Session
 						{/if}
 					</Button>
 				</div>
 
 				<div class="text-center text-sm text-muted-foreground">
-					<p>This code was provided by the person who shared the calculator with you.</p>
+					<p>This code was provided by the person who shared the session with you.</p>
 				</div>
 			</Card.Content>
 		</Card.Root>

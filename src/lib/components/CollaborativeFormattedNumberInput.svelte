@@ -57,6 +57,7 @@
 	}
 
 	let typingTimeout: ReturnType<typeof setTimeout>;
+	let blurTimeout: ReturnType<typeof setTimeout>;
 	let displayValue = $state('');
 	let isExternalUpdate = false;
 
@@ -79,11 +80,13 @@
 	});
 
 	function handleFocus() {
+		clearTimeout(blurTimeout);
 		focusField(fieldId);
 	}
 
 	function handleBlur() {
-		focusField(null);
+		// Don't automatically clear focus on blur - let the focus management 
+		// be handled by the new field gaining focus or explicit user actions
 		clearTimeout(typingTimeout);
 		setTypingStatus(fieldId, false);
 	}
@@ -130,6 +133,7 @@
 
 	onDestroy(() => {
 		clearTimeout(typingTimeout);
+		clearTimeout(blurTimeout);
 	});
 </script>
 
@@ -158,6 +162,7 @@
 		type="text"
 		inputmode="numeric"
 		class="{hasFocus ? 'border-transparent ring-0' : ''} {className}"
+		data-collaborative-input
 		onfocus={handleFocus}
 		onblur={handleBlur}
 		oninput={handleInput}

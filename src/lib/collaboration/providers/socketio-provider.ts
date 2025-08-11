@@ -6,6 +6,7 @@ import { isProUnlocked } from '$lib/salary-calculator';
 
 export class SocketIOProvider extends BaseCollaborationProvider {
 	private socket: Socket<SocketEvents> | null = null;
+	private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
 	async connect(): Promise<boolean> {
 		if (!browser || this.socket) {
@@ -32,7 +33,7 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 					resolve(true);
 				});
 
-				this.socket!.once('connect_error', (error) => {
+				this.socket!.once('connect_error', () => {
 					this._isConnected = false;
 					this._connectionError = 'Failed to connect to collaboration server';
 					this.emit('collaboration-error', this._connectionError);
@@ -89,6 +90,7 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 			) => {
 				this._currentUser = user;
 				this.emit('session-joined', user, users, hostProStatus);
+				this.startHeartbeat();
 				resolve(true);
 			};
 
@@ -109,6 +111,7 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 		this.socket.emit('leave-session', this._currentSessionId);
 		this._currentSessionId = null;
 		this._currentUser = null;
+		this.stopHeartbeat();
 	}
 
 	focusField(fieldId: string | null): void {
@@ -203,9 +206,36 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 			this._connectionError = message;
 			this.emit('collaboration-error', message);
 		});
+
+		this.socket.on('session-terminated', () => {
+			console.log('Session terminated by host');
+			this.emit('session-terminated');
+		});
+	}
+
+	broadcastSessionTermination(): void {
+		if (!this.socket || !this._currentSessionId) return;
+		this.socket.emit('terminate-session', this._currentSessionId);
+	}
+
+	private startHeartbeat(): void {
+		this.stopHeartbeat();
+		this.heartbeatInterval = setInterval(() => {
+			if (this.socket && this._currentSessionId) {
+				this.socket.emit('user-heartbeat', this._currentSessionId);
+			}
+		}, 30000);
+	}
+
+	private stopHeartbeat(): void {
+		if (this.heartbeatInterval) {
+			clearInterval(this.heartbeatInterval);
+			this.heartbeatInterval = null;
+		}
 	}
 
 	cleanup(): void {
+		this.stopHeartbeat();
 		this.disconnect();
 		super.cleanup();
 	}

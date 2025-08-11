@@ -17,6 +17,7 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 	private db: DrizzleClient | null = null;
 	private channel: RealtimeChannel | null = null;
 	private presenceChannel: RealtimeChannel | null = null;
+	private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
 	constructor(
 		private supabaseUrl: string,
@@ -40,7 +41,6 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 				}
 			});
 
-			// Initialize database client
 			this.db = new SupabaseDB(this.supabase);
 
 			// Test connection by trying to query sessions
@@ -175,6 +175,7 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 			}));
 
 			this.emit('session-joined', user, collaborationUsers, sessions[0].hostProStatus);
+			this.startHeartbeat();
 			return true;
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Failed to join session';
@@ -205,6 +206,7 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 
 			this._currentSessionId = null;
 			this._currentUser = null;
+			this.stopHeartbeat();
 		} catch (error) {
 			console.error('Error leaving session:', error);
 		}
@@ -213,13 +215,11 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 	focusField(fieldId: string | null): void {
 		if (!this.db || !this._currentSessionId || !this._currentUser) return;
 
-		// Update database
 		this.db.updateSessionUser(this._currentSessionId, this._currentUser.id, {
 			currentField: fieldId,
 			lastSeen: new Date()
 		});
 
-		// Broadcast to other users
 		this.channel?.send({
 			type: 'broadcast',
 			event: 'field-focus',
@@ -309,6 +309,9 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 					this.emit('user-typing-status', fieldId, userId, isTyping);
 				}
 			})
+			.on('broadcast', { event: 'session-terminated' }, () => {
+				this.emit('session-terminated');
+			})
 			.subscribe();
 
 		// Listen for user changes via database changes
@@ -347,15 +350,63 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 				},
 				(payload: any) => {
 					const userData = payload.new as SessionUser;
-					if (!userData.isActive && userData.userId !== this._currentUser?.id) {
+					const oldData = payload.old as SessionUser;
+					
+					if (!userData.isActive && userData.userId !== this._currentUser?.id && oldData?.isActive) {
 						this.emit('user-left', userData.userId);
 					}
 				}
 			)
 			.subscribe();
+
+		// Listen for session deletion
+		this.supabase!.channel(`sessions:${sessionId}`)
+			.on(
+				'postgres_changes',
+				{
+					event: 'DELETE',
+					schema: 'public',
+					table: 'collaboration_sessions',
+					filter: `id=eq.${sessionId}`
+				},
+				() => {
+					this.emit('session-terminated');
+				}
+			)
+			.subscribe();
+	}
+
+	broadcastSessionTermination(): void {
+		if (!this.channel) return;
+		
+		this.channel.send({
+			type: 'broadcast',
+			event: 'session-terminated',
+			payload: {}
+		});
+	}
+
+	private startHeartbeat(): void {
+		this.stopHeartbeat();
+		this.heartbeatInterval = setInterval(() => {
+			if (this.db && this._currentSessionId && this._currentUser) {
+				this.db.updateSessionUser(this._currentSessionId, this._currentUser.id, {
+					lastSeen: new Date(),
+					isActive: true
+				});
+			}
+		}, 30000); // Update every 30 seconds
+	}
+
+	private stopHeartbeat(): void {
+		if (this.heartbeatInterval) {
+			clearInterval(this.heartbeatInterval);
+			this.heartbeatInterval = null;
+		}
 	}
 
 	cleanup(): void {
+		this.stopHeartbeat();
 		this.disconnect();
 		super.cleanup();
 	}
