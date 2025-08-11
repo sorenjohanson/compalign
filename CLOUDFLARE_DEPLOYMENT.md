@@ -99,9 +99,6 @@ In your Cloudflare Pages project settings, add these environment variables:
 - `VITE_SUPABASE_URL`: Your Supabase project URL (e.g., `https://your-project.supabase.co`)
 - `VITE_SUPABASE_ANON_KEY`: Your Supabase anon/public key
 
-**Optional for collaboration features:**
-- `ENABLE_COLLABORATION`: `true`
-- `ENABLE_COLLABORATION_API`: `true`
 
 ### 3. Custom Domain (Optional)
 
@@ -117,8 +114,6 @@ For local development with Supabase:
 ```bash
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
-ENABLE_COLLABORATION=true
-ENABLE_COLLABORATION_API=true
 ```
 
 2. Install dependencies:

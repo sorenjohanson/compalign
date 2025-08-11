@@ -1,14 +1,13 @@
 {
   // Cloudflare Workers configuration
   "name": "compalign",
-  "main": "build/index.js",
+  "main": ".svelte-kit/output/server/index.js",
   "compatibility_date": "2025-08-11",
   "workers_dev": false,
   
   // Environment variables for Supabase integration
   "vars": {
     "VITE_SUPABASE_URL": "https://jtooqgaxrpgnngpyoeys.supabase.co",
-    "ENABLE_COLLABORATION": "false",
-    "ENABLE_COLLABORATION_API": "false"
+    "STRIPE_PAYMENT_LINK": "https://buy.stripe.com/9B66oG66c7n1e9CbOGb3q01"
   }
 }
