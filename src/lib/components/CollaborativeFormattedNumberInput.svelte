@@ -83,7 +83,7 @@
 	}
 
 	function handleBlur() {
-		// Don't automatically clear focus on blur - let the focus management 
+		// Don't automatically clear focus on blur - let the focus management
 		// be handled by the new field gaining focus or explicit user actions
 		clearTimeout(typingTimeout);
 		setTypingStatus(fieldId, false);

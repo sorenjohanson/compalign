@@ -96,9 +96,9 @@ ALTER PUBLICATION supabase_realtime ADD TABLE collaboration_participants;
 In your Cloudflare Pages project settings, add these environment variables:
 
 **Required for Supabase:**
+
 - `VITE_SUPABASE_URL`: Your Supabase project URL (e.g., `https://your-project.supabase.co`)
 - `VITE_SUPABASE_ANON_KEY`: Your Supabase anon/public key
-
 
 ### 3. Custom Domain (Optional)
 
@@ -111,17 +111,20 @@ In your Cloudflare Pages project settings, add these environment variables:
 For local development with Supabase:
 
 1. Create a `.env` file:
+
 ```bash
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Run development server:
+
 ```bash
 npm run dev
 ```
@@ -142,16 +145,19 @@ Cloudflare Pages automatically deploys when you push to your main branch:
 You can also use Wrangler CLI:
 
 1. Install Wrangler:
+
 ```bash
 npm install -g wrangler
 ```
 
 2. Authenticate:
+
 ```bash
 wrangler login
 ```
 
 3. Deploy:
+
 ```bash
 wrangler pages deploy build
 ```
@@ -198,6 +204,7 @@ The app automatically detects the deployment environment:
 ### Debugging
 
 Enable debug logging by setting environment variable:
+
 ```bash
 DEBUG=collaboration:*
 ```

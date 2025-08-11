@@ -351,8 +351,12 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 				(payload: any) => {
 					const userData = payload.new as SessionUser;
 					const oldData = payload.old as SessionUser;
-					
-					if (!userData.isActive && userData.userId !== this._currentUser?.id && oldData?.isActive) {
+
+					if (
+						!userData.isActive &&
+						userData.userId !== this._currentUser?.id &&
+						oldData?.isActive
+					) {
 						this.emit('user-left', userData.userId);
 					}
 				}
@@ -378,7 +382,7 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 
 	broadcastSessionTermination(): void {
 		if (!this.channel) return;
-		
+
 		this.channel.send({
 			type: 'broadcast',
 			event: 'session-terminated',

@@ -98,7 +98,7 @@ export class SupabaseDB {
 		const updateData: any = {};
 		if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
 		if (updates.currentField !== undefined) updateData.current_field = updates.currentField;
-		if (updates.lastSeen !== undefined) updateData.last_seen = updates.lastSeen.toISOString();
+		if (updates.lastSeen !== undefined) updateData.last_seen = updates.lastSeen?.toISOString();
 
 		const { error } = await this.supabase
 			.from('session_users')

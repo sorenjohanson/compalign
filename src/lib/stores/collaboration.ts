@@ -161,14 +161,13 @@ function setupProviderListeners() {
 	});
 
 	provider.on('session-terminated', () => {
-		
 		currentUser.set(null);
 		collaborators.set([]);
 		fieldFocuses.set({});
 		typingUsers.set({});
 		isConnected.set(false);
 		hostProStatus.set(false);
-		
+
 		if (typeof window !== 'undefined') {
 			window.dispatchEvent(new CustomEvent('session-terminated'));
 		}
@@ -226,7 +225,6 @@ export function leaveSession() {
 	fieldFocuses.set({});
 	typingUsers.set({});
 	hostProStatus.set(false);
-	
 }
 
 export function focusField(fieldId: string | null) {
@@ -254,13 +252,16 @@ export function broadcastSessionTermination() {
 		console.warn('broadcastSessionTermination called on server-side, skipping');
 		return;
 	}
-	
+
 	if (!provider) {
 		console.warn('No collaboration provider available for session termination');
 		return;
 	}
-	
-	if ('broadcastSessionTermination' in provider && typeof provider.broadcastSessionTermination === 'function') {
+
+	if (
+		'broadcastSessionTermination' in provider &&
+		typeof provider.broadcastSessionTermination === 'function'
+	) {
 		provider.broadcastSessionTermination();
 	}
 }
@@ -289,7 +290,6 @@ export const effectiveProStatus = derived([hostProStatus], ([hostPro]) => {
 	);
 	return localPro || hostPro;
 });
-
 
 export function disconnectCollaboration() {
 	if (provider) {

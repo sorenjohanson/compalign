@@ -41,11 +41,11 @@ export const POST: RequestHandler = async () => {
 		return json({ error: 'Collaboration features are disabled' }, { status: 404 });
 	}
 
-	try {		
+	try {
 		if (getCollaborationMode() === 'supabase') {
 			// TODO: Add database deletion when we have the session ID from request
 		}
-		
+
 		deactivateSession();
 
 		return json({ success: true });

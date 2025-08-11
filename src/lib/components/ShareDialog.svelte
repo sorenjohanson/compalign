@@ -15,7 +15,11 @@
 		AlertCircle,
 		Trash2
 	} from '@lucide/svelte';
-	import { initializeCollaboration, joinSession, broadcastSessionTermination } from '$lib/stores/collaboration';
+	import {
+		initializeCollaboration,
+		joinSession,
+		broadcastSessionTermination
+	} from '$lib/stores/collaboration';
 	import type { CalculatorConfig } from '$lib/salary-calculator';
 
 	interface Props {
@@ -141,7 +145,7 @@
 		error = '';
 		try {
 			broadcastSessionTermination();
-			
+
 			const response = await fetch('/api/v1/share/deactivate', {
 				method: 'POST'
 			});

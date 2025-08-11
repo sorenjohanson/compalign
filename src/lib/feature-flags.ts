@@ -35,4 +35,3 @@ export function isCollaborationEnabled(): boolean {
 export function isCollaborationApiEnabled(): boolean {
 	return featureFlags.COLLABORATION_API_ENABLED;
 }
-

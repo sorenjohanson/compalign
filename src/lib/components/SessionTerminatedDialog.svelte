@@ -30,7 +30,8 @@
 				<AlertCircle class="h-4 w-4" />
 				<Alert.Title>Session Ended</Alert.Title>
 				<Alert.Description>
-					You have been disconnected from the shared session. The host has terminated the collaboration.
+					You have been disconnected from the shared session. The host has terminated the
+					collaboration.
 				</Alert.Description>
 			</Alert.Root>
 

@@ -10,7 +10,7 @@ function socketIOPlugin() {
 			if (!server.httpServer) return;
 
 			// Only initialize Socket.IO when explicitly enabled via env var
-			const shouldEnableSocketIO = process.env.ENABLE_SOCKET_IO === 'true';
+			const shouldEnableSocketIO = import.meta.env.VITE_ENABLE_SOCKET_IO === 'true';
 			if (!shouldEnableSocketIO) {
 				console.log('Socket.IO is disabled via ENABLE_SOCKET_IO env var');
 				return;
