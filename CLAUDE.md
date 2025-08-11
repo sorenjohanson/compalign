@@ -6,4 +6,4 @@ Do not write comments explaining what the method does. Only add comments if they
 
 When in Svelte components, use Svelte 5. Always make sure to add `lang="ts"` to any script tag.
 
-Before making new changes, ask the user if they want to commit previous changes.
+Before making new changes, check if there are any staged files waiting to be committed. If there are, ask the user if they'd like to commit these files before making any new changes.
