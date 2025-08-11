@@ -1,8 +1,8 @@
-import { STRIPE_PAYMENT_LINK, STRIPE_WEBHOOK_SECRET } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 export const STRIPE_CONFIG = {
-	PAYMENT_LINK: STRIPE_PAYMENT_LINK,
-	WEBHOOK_SECRET: STRIPE_WEBHOOK_SECRET,
+	PAYMENT_LINK: env.STRIPE_PAYMENT_LINK,
+	WEBHOOK_SECRET: env.STRIPE_WEBHOOK_SECRET,
 	PRODUCT_NAME: 'Salary Calculator Pro',
 	CURRENCY: 'eur'
 };
