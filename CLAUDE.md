@@ -6,3 +6,4 @@ Do not write comments explaining what the method does. Only add comments if they
 
 When in Svelte components, use Svelte 5. Always make sure to add `lang="ts"` to any script tag.
 
+Before making new changes, ask the user if they want to commit previous changes.
