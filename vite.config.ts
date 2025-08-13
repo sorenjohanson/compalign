@@ -12,7 +12,7 @@ function socketIOPlugin() {
 			// Only initialize Socket.IO when Supabase is not being used
 			const supabaseUrl = process.env.PUBLIC_SUPABASE_URL;
 			const isSupabaseEnabled = supabaseUrl && supabaseUrl !== 'your_supabase_url_here';
-			
+
 			if (isSupabaseEnabled) {
 				console.log('Socket.IO is disabled - using Supabase instead');
 				return;

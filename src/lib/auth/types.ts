@@ -4,7 +4,7 @@ export interface AuthUser {
 	name?: string;
 	avatar?: string;
 	isProUnlocked: boolean;
-	metadata?: Record<string, any>;
+	metadata?: Record<string, unknown>;
 	createdAt?: Date;
 	lastSignIn?: Date;
 }
@@ -33,7 +33,7 @@ export interface SignInCredentials {
 
 export interface SignUpCredentials extends SignInCredentials {
 	name?: string;
-	metadata?: Record<string, any>;
+	metadata?: Record<string, unknown>;
 }
 
 export interface AuthProvider {

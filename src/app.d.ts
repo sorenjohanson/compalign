@@ -9,7 +9,7 @@ declare global {
 		interface Platform {
 			env?: {
 				[key: string]: string;
-			}
+			};
 		}
 	}
 }

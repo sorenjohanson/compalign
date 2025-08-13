@@ -3,7 +3,7 @@ import type { AuthProvider, AuthEvents, AuthEventCallback, AuthUser, AuthSession
 export abstract class BaseAuthProvider implements AuthProvider {
 	protected _currentUser: AuthUser | null = null;
 	protected _currentSession: AuthSession | null = null;
-	protected _eventListeners = new Map<keyof AuthEvents, Set<Function>>();
+	protected _eventListeners = new Map<keyof AuthEvents, Set<AuthEventCallback<keyof AuthEvents>>>();
 
 	get currentUser(): AuthUser | null {
 		return this._currentUser;
@@ -22,7 +22,7 @@ export abstract class BaseAuthProvider implements AuthProvider {
 		if (listeners) {
 			listeners.forEach((callback) => {
 				try {
-					// @ts-ignore - TypeScript has trouble with spread args here
+					// @ts-expect-error - TypeScript has trouble with spread args here
 					callback(...args);
 				} catch (error) {
 					console.error(`Error in ${event} event listener:`, error);

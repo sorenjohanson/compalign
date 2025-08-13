@@ -8,7 +8,7 @@ interface LocalUser {
 	name: string;
 	passwordHash: string; // In a real implementation, this would be properly hashed
 	isProUnlocked: boolean;
-	metadata: Record<string, any>;
+	metadata: Record<string, unknown>;
 	createdAt: string;
 	lastSignIn?: string;
 }

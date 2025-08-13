@@ -7,7 +7,8 @@ import { isProUnlocked } from '$lib/salary-calculator';
 export class SocketIOProvider extends BaseCollaborationProvider {
 	private socket: Socket<SocketEvents> | null = null;
 	private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
-	private boundListeners: Record<string, (...args: any[]) => void> = {};
+	private boundListeners: Partial<Record<keyof SocketEvents, (...args: never[]) => void>> &
+		Record<string, (...args: unknown[]) => void> = {};
 
 	async connect(): Promise<boolean> {
 		if (!browser || this.socket) {
@@ -161,14 +162,19 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 			this.emit('disconnect');
 		};
 
-		this.boundListeners['connect_error'] = (error) => {
+		this.boundListeners['connect_error'] = (...args: unknown[]) => {
+			const error = args[0] as Error;
 			console.error('Connection error:', error);
 			this._isConnected = false;
 			this._connectionError = 'Failed to connect to collaboration server';
 			this.emit('collaboration-error', this._connectionError);
 		};
 
-		this.boundListeners['session-joined'] = (user, users, sessionHostProStatus) => {
+		this.boundListeners['session-joined'] = (
+			user: CollaborationUser,
+			users: CollaborationUser[],
+			sessionHostProStatus: boolean
+		) => {
 			console.log(
 				'✅ Successfully joined session as:',
 				user.name,
@@ -182,37 +188,41 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 			this.emit('session-joined', user, users, sessionHostProStatus);
 		};
 
-		this.boundListeners['user-joined'] = (user) => {
+		this.boundListeners['user-joined'] = (user: CollaborationUser) => {
 			console.log('👋 New user joined session:', user.name, 'Color:', user.color);
 			this.emit('user-joined', user);
 		};
 
-		this.boundListeners['user-left'] = (userId) => {
+		this.boundListeners['user-left'] = (userId: string) => {
 			console.log('User left:', userId);
 			this.emit('user-left', userId);
 		};
 
-		this.boundListeners['field-focused'] = (fieldId, user) => {
+		this.boundListeners['field-focused'] = (fieldId: string | null, user: CollaborationUser) => {
 			if (this._currentUser && user.id === this._currentUser.id) return;
 			this.emit('field-focused', fieldId, user);
 		};
 
-		this.boundListeners['field-updated'] = (fieldId, value, userId) => {
+		this.boundListeners['field-updated'] = (fieldId: string, value: unknown, userId: string) => {
 			if (this._currentUser && userId === this._currentUser.id) return;
 			console.log('Field updated:', fieldId, value, 'by user:', userId);
 			this.emit('field-updated', fieldId, value, userId);
 		};
 
-		this.boundListeners['settings-updated'] = (config, userId) => {
+		this.boundListeners['settings-updated'] = (config: Record<string, unknown>, userId: string) => {
 			console.log('Settings updated by user:', userId, 'Config:', config);
 			this.emit('settings-updated', config, userId);
 		};
 
-		this.boundListeners['user-typing-status'] = (fieldId, userId, isTyping) => {
+		this.boundListeners['user-typing-status'] = (
+			fieldId: string,
+			userId: string,
+			isTyping: boolean
+		) => {
 			this.emit('user-typing-status', fieldId, userId, isTyping);
 		};
 
-		this.boundListeners['collaboration-error'] = (message) => {
+		this.boundListeners['collaboration-error'] = (message: string) => {
 			console.error('Collaboration error:', message);
 			this._connectionError = message;
 			this.emit('collaboration-error', message);
@@ -224,17 +234,18 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 		};
 
 		Object.entries(this.boundListeners).forEach(([event, handler]) => {
-			this.socket!.on(event, handler);
+			this.socket!.on(event as keyof SocketEvents, handler);
 		});
 	}
 
 	private removeAllSocketListeners(): void {
 		if (!this.socket) return;
-		
+
 		Object.entries(this.boundListeners).forEach(([event, handler]) => {
-			this.socket!.off(event, handler);
+			this.socket!.off(event as keyof SocketEvents, handler);
 		});
-		this.boundListeners = {};
+		this.boundListeners = {} as Partial<Record<keyof SocketEvents, (...args: never[]) => void>> &
+			Record<string, (...args: unknown[]) => void>;
 	}
 
 	broadcastSessionTermination(): void {

@@ -1,13 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
-	collaborationSessions,
-	sessionUsers,
 	type CollaborationSession,
 	type SessionUser,
 	type NewCollaborationSession,
 	type NewSessionUser
 } from './schema';
-import { eq, and } from 'drizzle-orm';
 
 // Simplified database operations using Supabase client directly
 // This avoids the complexity of setting up Drizzle with Supabase's client-side approach
@@ -95,7 +92,7 @@ export class SupabaseDB {
 		userId: string,
 		updates: Partial<Pick<SessionUser, 'isActive' | 'currentField' | 'lastSeen'>>
 	): Promise<void> {
-		const updateData: any = {};
+		const updateData: Record<string, unknown> = {};
 		if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
 		if (updates.currentField !== undefined) updateData.current_field = updates.currentField;
 		if (updates.lastSeen !== undefined) updateData.last_seen = updates.lastSeen?.toISOString();
@@ -113,7 +110,7 @@ export class SupabaseDB {
 		sessionId: string,
 		updates: Partial<Pick<CollaborationSession, 'calculatorData'>>
 	): Promise<void> {
-		const updateData: any = {};
+		const updateData: Record<string, unknown> = {};
 		if (updates.calculatorData !== undefined) updateData.calculator_data = updates.calculatorData;
 
 		const { error } = await this.supabase

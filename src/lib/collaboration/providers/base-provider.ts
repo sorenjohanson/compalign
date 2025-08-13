@@ -51,7 +51,10 @@ export abstract class BaseCollaborationProvider implements CollaborationProvider
 	protected _isConnected = false;
 	protected _currentUser: CollaborationUser | null = null;
 	protected _connectionError: string | null = null;
-	protected _eventListeners = new Map<keyof CollaborationEvents, Set<Function>>();
+	protected _eventListeners = new Map<
+		keyof CollaborationEvents,
+		Set<EventCallback<keyof CollaborationEvents>>
+	>();
 	protected _currentSessionId: string | null = null;
 
 	get isConnected(): boolean {
@@ -74,7 +77,7 @@ export abstract class BaseCollaborationProvider implements CollaborationProvider
 		if (listeners) {
 			listeners.forEach((callback) => {
 				try {
-					// @ts-ignore - TypeScript has trouble with spread args here
+					// @ts-expect-error - TypeScript has trouble with spread args here
 					callback(...args);
 				} catch (error) {
 					console.error(`Error in ${event} event listener:`, error);

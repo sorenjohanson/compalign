@@ -16,6 +16,7 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 	private supabase: SupabaseClient | null = null;
 	private db: DrizzleClient | null = null;
 	private channel: RealtimeChannel | null = null;
+	private dbChannel: RealtimeChannel | null = null;
 	private presenceChannel: RealtimeChannel | null = null;
 	private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -46,7 +47,7 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 			// Test connection by trying to query sessions
 			try {
 				await this.db.selectSessions('test');
-			} catch (error) {
+			} catch {
 				// This is expected for a non-existent session, but confirms connection works
 			}
 
@@ -69,6 +70,10 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 		if (this.presenceChannel) {
 			this.supabase?.removeChannel(this.presenceChannel);
 			this.presenceChannel = null;
+		}
+		if (this.dbChannel) {
+			this.supabase?.removeChannel(this.dbChannel);
+			this.dbChannel = null;
 		}
 		this._isConnected = false;
 		this._currentUser = null;
@@ -285,47 +290,63 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 
 		// Channel for broadcasts (typing, field focus, updates)
 		this.channel = this.supabase!.channel(`session:${sessionId}`)
-			.on('broadcast', { event: 'field-focus' }, (payload: any) => {
-				const { fieldId, user } = payload.payload;
-				if (user.id !== this._currentUser?.id) {
-					this.emit('field-focused', fieldId, user);
+			.on(
+				'broadcast',
+				{ event: 'field-focus' },
+				(payload: { payload: { fieldId: string; user: CollaborationUser } }) => {
+					const { fieldId, user } = payload.payload;
+					if (user.id !== this._currentUser?.id) {
+						this.emit('field-focused', fieldId, user);
+					}
 				}
-			})
-			.on('broadcast', { event: 'field-update' }, (payload: any) => {
-				const { fieldId, value, userId } = payload.payload;
-				if (userId !== this._currentUser?.id) {
-					this.emit('field-updated', fieldId, value, userId);
+			)
+			.on(
+				'broadcast',
+				{ event: 'field-update' },
+				(payload: { payload: { fieldId: string; value: unknown; userId: string } }) => {
+					const { fieldId, value, userId } = payload.payload;
+					if (userId !== this._currentUser?.id) {
+						this.emit('field-updated', fieldId, value, userId);
+					}
 				}
-			})
-			.on('broadcast', { event: 'settings-update' }, (payload: any) => {
-				const { config, userId } = payload.payload;
-				if (userId !== this._currentUser?.id) {
-					this.emit('settings-updated', config, userId);
+			)
+			.on(
+				'broadcast',
+				{ event: 'settings-update' },
+				(payload: { payload: { config: Record<string, unknown>; userId: string } }) => {
+					const { config, userId } = payload.payload;
+					if (userId !== this._currentUser?.id) {
+						this.emit('settings-updated', config, userId);
+					}
 				}
-			})
-			.on('broadcast', { event: 'user-typing' }, (payload: any) => {
-				const { fieldId, userId, isTyping } = payload.payload;
-				if (userId !== this._currentUser?.id) {
-					this.emit('user-typing-status', fieldId, userId, isTyping);
+			)
+			.on(
+				'broadcast',
+				{ event: 'user-typing' },
+				(payload: { payload: { fieldId: string; userId: string; isTyping: boolean } }) => {
+					const { fieldId, userId, isTyping } = payload.payload;
+					if (userId !== this._currentUser?.id) {
+						this.emit('user-typing-status', fieldId, userId, isTyping);
+					}
 				}
-			})
+			)
 			.on('broadcast', { event: 'session-terminated' }, () => {
 				this.emit('session-terminated');
 			})
 			.subscribe();
 
 		// Listen for user changes via database changes
-		this.supabase!.channel(`session_users:${sessionId}`)
+		this.dbChannel = this.supabase!.channel(`session_users:${sessionId}`)
 			.on(
-				'postgres_changes',
+				'postgres_changes' as never,
 				{
 					event: 'INSERT',
 					schema: 'public',
 					table: 'session_users',
 					filter: `session_id=eq.${sessionId}`
-				},
-				(payload: any) => {
-					const userData = payload.new as SessionUser;
+				} as never,
+				((payload: { new: SessionUser }) => {
+					const userData = payload.new;
 					if (userData.userId !== this._currentUser?.id) {
 						const user: CollaborationUser = {
 							id: userData.userId,
@@ -338,19 +359,19 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 						};
 						this.emit('user-joined', user);
 					}
-				}
+				}) as never
 			)
 			.on(
-				'postgres_changes',
+				'postgres_changes' as never,
 				{
 					event: 'UPDATE',
 					schema: 'public',
 					table: 'session_users',
 					filter: `session_id=eq.${sessionId}`
-				},
-				(payload: any) => {
-					const userData = payload.new as SessionUser;
-					const oldData = payload.old as SessionUser;
+				} as never,
+				((payload: { new: SessionUser; old: SessionUser }) => {
+					const userData = payload.new;
+					const oldData = payload.old;
 
 					if (
 						!userData.isActive &&
@@ -359,7 +380,7 @@ export class SupabaseProvider extends BaseCollaborationProvider {
 					) {
 						this.emit('user-left', userData.userId);
 					}
-				}
+				}) as never
 			)
 			.subscribe();
 

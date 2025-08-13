@@ -191,7 +191,7 @@ export function setupCollaborationServer(httpServer: HTTPServer) {
 			}
 		});
 
-		socket.on('user-heartbeat', (sessionId) => {
+		socket.on('user-heartbeat', (sessionId: string) => {
 			try {
 				const session = collaborationSessions.get(sessionId);
 				const user = session?.users.get(socket.id);
@@ -204,7 +204,7 @@ export function setupCollaborationServer(httpServer: HTTPServer) {
 			}
 		});
 
-		socket.on('terminate-session', (sessionId) => {
+		socket.on('terminate-session', (sessionId: string) => {
 			try {
 				const session = collaborationSessions.get(sessionId);
 				if (!session) return;

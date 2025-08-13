@@ -41,6 +41,8 @@ export interface SocketEvents {
 	'field-update': (sessionId: string, fieldId: string, value: unknown) => void;
 	'settings-update': (sessionId: string, config: Record<string, unknown>) => void;
 	'user-typing': (sessionId: string, fieldId: string, isTyping: boolean) => void;
+	'user-heartbeat': (sessionId: string) => void;
+	'terminate-session': (sessionId: string) => void;
 
 	// Server -> Client
 	'session-joined': (
@@ -56,6 +58,7 @@ export interface SocketEvents {
 	'settings-updated': (config: Record<string, unknown>, userId: string) => void;
 	'user-typing-status': (fieldId: string, userId: string, isTyping: boolean) => void;
 	'collaboration-error': (message: string) => void;
+	'session-terminated': () => void;
 }
 
 // Predefined user colors (Material Design palette)

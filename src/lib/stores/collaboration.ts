@@ -132,7 +132,7 @@ function setupProviderListeners() {
 		}
 	});
 
-	provider.on('settings-updated', (config, userId) => {
+	provider.on('settings-updated', () => {
 		// Settings updated by other users
 	});
 
