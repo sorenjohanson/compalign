@@ -228,7 +228,7 @@
 						<p class="text-xs text-muted-foreground">Professional development time</p>
 					</div>
 					<div class="space-y-2">
-						<label for="publicHolidays" class="text-sm font-medium">Holidays</label>
+						<label for="publicHolidays" class="text-sm font-medium">Public Holidays</label>
 						<CollaborativeFormattedNumberInput
 							fieldId="settings.publicHolidays"
 							bind:value={tempConfig.publicHolidays}
