@@ -163,6 +163,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Build
+        run: pnpm run build
+        env:
+          PUBLIC_AUTH_MODE: ''
+          PUBLIC_COLLABORATION_MODE: ''
+          PUBLIC_SUPABASE_URL: ''
+          PUBLIC_SUPABASE_ANON_KEY: ''
+          PUBLIC_STRIPE_PAYMENT_LINK: ''
+          PUBLIC_STRIPE_WEBHOOK_SECRET: ''
+
       - name: Deploy to Netlify
         run: npx netlify deploy --prod --dir=build
         env:
