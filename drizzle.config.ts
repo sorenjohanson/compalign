@@ -3,7 +3,7 @@ import type { Config } from 'drizzle-kit';
 // Use environment variables that work with Cloudflare Pages build environment
 const getDatabaseUrl = (): string => {
 	// Try different environment variable sources for Cloudflare compatibility
-	const dbUrl = import.meta.env?.PUBLIC_DATABASE_URL || import.meta.env?.DATABASE_URL;
+	const dbUrl = process.env.PUBLIC_DATABASE_URL || process.env.DATABASE_URL;
 
 	if (!dbUrl) {
 		throw new Error(

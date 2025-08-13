@@ -84,7 +84,12 @@ jobs:
       - name: Run Svelte Check
         run: pnpm run check
         env:
-          BREVO_API_KEY: dummy_value
+          PUBLIC_AUTH_MODE: ''
+          PUBLIC_COLLABORATION_MODE: ''
+          PUBLIC_SUPABASE_URL: ''
+          PUBLIC_SUPABASE_ANON_KEY: ''
+          PUBLIC_STRIPE_PAYMENT_LINK: ''
+          PUBLIC_STRIPE_WEBHOOK_SECRET: ''
 
   gitleaks:
     name: 'GitLeaks'

@@ -2,6 +2,11 @@ import type { CollaborationProvider } from './base-provider';
 import { SocketIOProvider } from './socketio-provider';
 import { SupabaseProvider } from './supabase-provider';
 import { dev } from '$app/environment';
+import {
+	PUBLIC_SUPABASE_URL,
+	PUBLIC_SUPABASE_ANON_KEY,
+	PUBLIC_COLLABORATION_MODE
+} from '$env/static/public';
 
 export type CollaborationMode = 'local' | 'supabase' | 'disabled';
 
@@ -15,8 +20,8 @@ export interface CollaborationConfig {
 
 function getCollaborationConfig(): CollaborationConfig {
 	if (dev) {
-		const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-		const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+		const supabaseUrl = PUBLIC_SUPABASE_URL;
+		const supabaseKey = PUBLIC_SUPABASE_ANON_KEY;
 
 		if (supabaseUrl && supabaseKey) {
 			return {
@@ -32,11 +37,9 @@ function getCollaborationConfig(): CollaborationConfig {
 	}
 
 	// In production, check environment variables to determine mode
-	const collaborationMode = import.meta.env.PUBLIC_COLLABORATION_MODE as
-		| CollaborationMode
-		| undefined;
-	const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-	const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+	const collaborationMode = PUBLIC_COLLABORATION_MODE as CollaborationMode | undefined;
+	const supabaseUrl = PUBLIC_SUPABASE_URL;
+	const supabaseKey = PUBLIC_SUPABASE_ANON_KEY;
 
 	if (supabaseUrl && supabaseKey) {
 		return {

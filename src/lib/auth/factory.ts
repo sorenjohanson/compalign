@@ -3,6 +3,11 @@ import type { AuthMode } from './types';
 import { SupabaseAuthProvider } from './supabase-provider';
 import { LocalAuthProvider } from './local-provider';
 import { dev } from '$app/environment';
+import {
+	PUBLIC_SUPABASE_URL,
+	PUBLIC_SUPABASE_ANON_KEY,
+	PUBLIC_AUTH_MODE
+} from '$env/static/public';
 
 export interface AuthConfig {
 	mode: AuthMode;
@@ -15,8 +20,8 @@ export interface AuthConfig {
 function getAuthConfig(): AuthConfig {
 	// In development, default to local mode unless Supabase is configured
 	if (dev) {
-		const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-		const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+		const supabaseUrl = PUBLIC_SUPABASE_URL;
+		const supabaseKey = PUBLIC_SUPABASE_ANON_KEY;
 
 		if (supabaseUrl && supabaseKey) {
 			return {
@@ -32,9 +37,9 @@ function getAuthConfig(): AuthConfig {
 	}
 
 	// In production, check environment variables to determine mode
-	const authMode = import.meta.env.PUBLIC_AUTH_MODE as AuthMode | undefined;
-	const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-	const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+	const authMode = PUBLIC_AUTH_MODE as AuthMode | undefined;
+	const supabaseUrl = PUBLIC_SUPABASE_URL;
+	const supabaseKey = PUBLIC_SUPABASE_ANON_KEY;
 
 	// If Supabase credentials are provided, use Supabase mode
 	if (supabaseUrl && supabaseKey) {
