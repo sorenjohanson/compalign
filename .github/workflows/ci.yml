@@ -163,18 +163,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build
-        run: pnpm run build
+      - name: Deploy to Netlify
+        run: npx netlify deploy --prod --dir=build
         env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           PUBLIC_AUTH_MODE: ''
           PUBLIC_COLLABORATION_MODE: ''
           PUBLIC_SUPABASE_URL: ''
           PUBLIC_SUPABASE_ANON_KEY: ''
           PUBLIC_STRIPE_PAYMENT_LINK: ''
           PUBLIC_STRIPE_WEBHOOK_SECRET: ''
-
-      - name: Deploy to Netlify
-        run: npx netlify deploy --prod --dir=build
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
