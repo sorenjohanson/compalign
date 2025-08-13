@@ -3,7 +3,6 @@
 	import Badge from '$lib/components/ui/badge/badge.svelte';
 
 	interface Props {
-		size?: 'xs' | 'sm' | 'md';
 		showText?: boolean;
 		showUnlockText?: boolean;
 		class?: string;
