@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Euro, Clock, Users, Lock } from '@lucide/svelte';
+	import { Euro, Clock, Users } from '@lucide/svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Alert from '$lib/components/ui/alert';
 	import Switch from '$lib/components/ui/switch/switch.svelte';
-	import Badge from '$lib/components/ui/badge/badge.svelte';
+	import ProBadge from '$lib/components/ProBadge.svelte';
 	import FormattedNumberInput from '$lib/components/FormattedNumberInput.svelte';
 	import CollaborativeFormattedNumberInput from '$lib/components/CollaborativeFormattedNumberInput.svelte';
 	import { isCollaborationEnabled } from '$lib/feature-flags';
@@ -46,13 +46,7 @@
 						<Switch bind:checked={isFreelancerMode} disabled class="opacity-50" />
 						<span class="text-xs text-muted-foreground/60 sm:text-sm">Freelancer</span>
 					</div>
-					<Badge
-						variant="secondary"
-						class="border-blue-200 bg-blue-100 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
-					>
-						<Lock class="mr-1 h-3 w-3" />
-						Pro
-					</Badge>
+					<ProBadge showText={true} />
 				</div>
 			</div>
 		</Card.Header>

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { ChartBar, Lock } from '@lucide/svelte';
+	import { ChartBar } from '@lucide/svelte';
 	import * as Card from '$lib/components/ui/card';
-	import Badge from '$lib/components/ui/badge/badge.svelte';
+	import ProBadge from '$lib/components/ProBadge.svelte';
 	import MarginComparisonChart from '$lib/components/MarginComparisonChart.svelte';
 	import type { IndustryBenchmark, MarginComparison } from '$lib/salary-calculator';
 
@@ -63,13 +63,7 @@
 					class="absolute inset-0 flex items-center justify-center rounded-lg bg-background/10 backdrop-blur-[2px]"
 				>
 					<div class="p-6 text-center">
-						<Badge
-							variant="secondary"
-							class="border-blue-200 bg-blue-100 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
-						>
-							<Lock class="mr-1 h-3 w-3" />
-							<span class="xs:inline hidden">Unlock with </span>Pro
-						</Badge>
+						<ProBadge showText={true} showUnlockText={true} />
 						<p class="mt-3 max-w-xs text-sm text-muted-foreground">
 							Access detailed industry benchmarks
 						</p>

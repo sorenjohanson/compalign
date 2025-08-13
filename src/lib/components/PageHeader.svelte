@@ -3,6 +3,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import DarkModeToggle from '$lib/components/DarkModeToggle.svelte';
 	import CollaborationAvatars from '$lib/components/CollaborationAvatars.svelte';
+	import ProBadge from '$lib/components/ProBadge.svelte';
 	import { isCollaborationEnabled } from '$lib/feature-flags';
 	import { isInSession } from '$lib/stores/collaboration';
 
@@ -26,9 +27,16 @@
 		<div class="flex flex-1 items-center justify-end gap-2">
 			<DarkModeToggle />
 			{#if isCollaborationEnabled()}
-				<Button variant="outline" size="sm" onclick={onShareOpen} class="flex items-center gap-2">
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={onShareOpen}
+					disabled
+					class="flex items-center gap-2"
+				>
 					<Share2 class="h-4 w-4" />
 					<span class="hidden sm:inline">Share</span>
+					<ProBadge showText={true} />
 				</Button>
 			{/if}
 			<Button variant="outline" size="sm" onclick={onSettingsOpen} class="flex items-center gap-2">
