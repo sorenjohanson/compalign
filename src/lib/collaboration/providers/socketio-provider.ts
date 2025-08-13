@@ -7,6 +7,7 @@ import { isProUnlocked } from '$lib/salary-calculator';
 export class SocketIOProvider extends BaseCollaborationProvider {
 	private socket: Socket<SocketEvents> | null = null;
 	private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+	private boundListeners: Record<string, (...args: any[]) => void> = {};
 
 	async connect(): Promise<boolean> {
 		if (!browser || this.socket) {
@@ -49,6 +50,7 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 
 	disconnect(): void {
 		if (this.socket) {
+			this.removeAllSocketListeners();
 			this.socket.disconnect();
 			this.socket = null;
 		}
@@ -91,13 +93,20 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 				this._currentUser = user;
 				this.emit('session-joined', user, users, hostProStatus);
 				this.startHeartbeat();
+				cleanup();
 				resolve(true);
 			};
 
 			const onError = (message: string) => {
 				this._connectionError = message;
 				this.emit('collaboration-error', message);
+				cleanup();
 				resolve(false);
+			};
+
+			const cleanup = () => {
+				this.socket?.off('session-joined', onSessionJoined);
+				this.socket?.off('collaboration-error', onError);
 			};
 
 			this.socket!.once('session-joined', onSessionJoined);
@@ -137,27 +146,29 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 	private setupSocketListeners(): void {
 		if (!this.socket) return;
 
-		this.socket.on('connect', () => {
+		this.removeAllSocketListeners();
+
+		this.boundListeners['connect'] = () => {
 			console.log('Connected to collaboration server');
 			this._isConnected = true;
 			this._connectionError = null;
 			this.emit('connect');
-		});
+		};
 
-		this.socket.on('disconnect', () => {
+		this.boundListeners['disconnect'] = () => {
 			console.log('Disconnected from collaboration server');
 			this._isConnected = false;
 			this.emit('disconnect');
-		});
+		};
 
-		this.socket.on('connect_error', (error) => {
+		this.boundListeners['connect_error'] = (error) => {
 			console.error('Connection error:', error);
 			this._isConnected = false;
 			this._connectionError = 'Failed to connect to collaboration server';
 			this.emit('collaboration-error', this._connectionError);
-		});
+		};
 
-		this.socket.on('session-joined', (user, users, sessionHostProStatus) => {
+		this.boundListeners['session-joined'] = (user, users, sessionHostProStatus) => {
 			console.log(
 				'✅ Successfully joined session as:',
 				user.name,
@@ -169,48 +180,61 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 			);
 			this._currentUser = user;
 			this.emit('session-joined', user, users, sessionHostProStatus);
-		});
+		};
 
-		this.socket.on('user-joined', (user) => {
+		this.boundListeners['user-joined'] = (user) => {
 			console.log('👋 New user joined session:', user.name, 'Color:', user.color);
 			this.emit('user-joined', user);
-		});
+		};
 
-		this.socket.on('user-left', (userId) => {
+		this.boundListeners['user-left'] = (userId) => {
 			console.log('User left:', userId);
 			this.emit('user-left', userId);
-		});
+		};
 
-		this.socket.on('field-focused', (fieldId, user) => {
+		this.boundListeners['field-focused'] = (fieldId, user) => {
 			if (this._currentUser && user.id === this._currentUser.id) return;
 			this.emit('field-focused', fieldId, user);
-		});
+		};
 
-		this.socket.on('field-updated', (fieldId, value, userId) => {
+		this.boundListeners['field-updated'] = (fieldId, value, userId) => {
 			if (this._currentUser && userId === this._currentUser.id) return;
 			console.log('Field updated:', fieldId, value, 'by user:', userId);
 			this.emit('field-updated', fieldId, value, userId);
-		});
+		};
 
-		this.socket.on('settings-updated', (config, userId) => {
+		this.boundListeners['settings-updated'] = (config, userId) => {
 			console.log('Settings updated by user:', userId, 'Config:', config);
 			this.emit('settings-updated', config, userId);
-		});
+		};
 
-		this.socket.on('user-typing-status', (fieldId, userId, isTyping) => {
+		this.boundListeners['user-typing-status'] = (fieldId, userId, isTyping) => {
 			this.emit('user-typing-status', fieldId, userId, isTyping);
-		});
+		};
 
-		this.socket.on('collaboration-error', (message) => {
+		this.boundListeners['collaboration-error'] = (message) => {
 			console.error('Collaboration error:', message);
 			this._connectionError = message;
 			this.emit('collaboration-error', message);
-		});
+		};
 
-		this.socket.on('session-terminated', () => {
+		this.boundListeners['session-terminated'] = () => {
 			console.log('Session terminated by host');
 			this.emit('session-terminated');
+		};
+
+		Object.entries(this.boundListeners).forEach(([event, handler]) => {
+			this.socket!.on(event, handler);
 		});
+	}
+
+	private removeAllSocketListeners(): void {
+		if (!this.socket) return;
+		
+		Object.entries(this.boundListeners).forEach(([event, handler]) => {
+			this.socket!.off(event, handler);
+		});
+		this.boundListeners = {};
 	}
 
 	broadcastSessionTermination(): void {
@@ -236,6 +260,7 @@ export class SocketIOProvider extends BaseCollaborationProvider {
 
 	cleanup(): void {
 		this.stopHeartbeat();
+		this.removeAllSocketListeners();
 		this.disconnect();
 		super.cleanup();
 	}

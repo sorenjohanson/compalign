@@ -15,8 +15,8 @@ export interface CollaborationConfig {
 
 function getCollaborationConfig(): CollaborationConfig {
 	if (dev) {
-		const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-		const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+		const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+		const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 		if (supabaseUrl && supabaseKey) {
 			return {
@@ -32,11 +32,11 @@ function getCollaborationConfig(): CollaborationConfig {
 	}
 
 	// In production, check environment variables to determine mode
-	const collaborationMode = import.meta.env.VITE_COLLABORATION_MODE as
+	const collaborationMode = import.meta.env.PUBLIC_COLLABORATION_MODE as
 		| CollaborationMode
 		| undefined;
-	const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-	const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+	const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+	const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 	if (supabaseUrl && supabaseKey) {
 		return {

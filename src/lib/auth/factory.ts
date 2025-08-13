@@ -15,8 +15,8 @@ export interface AuthConfig {
 function getAuthConfig(): AuthConfig {
 	// In development, default to local mode unless Supabase is configured
 	if (dev) {
-		const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-		const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+		const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+		const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 		if (supabaseUrl && supabaseKey) {
 			return {
@@ -32,9 +32,9 @@ function getAuthConfig(): AuthConfig {
 	}
 
 	// In production, check environment variables to determine mode
-	const authMode = import.meta.env.VITE_AUTH_MODE as AuthMode | undefined;
-	const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-	const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+	const authMode = import.meta.env.PUBLIC_AUTH_MODE as AuthMode | undefined;
+	const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+	const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 	// If Supabase credentials are provided, use Supabase mode
 	if (supabaseUrl && supabaseKey) {

@@ -9,10 +9,12 @@ function socketIOPlugin() {
 		configureServer(server: import('vite').ViteDevServer) {
 			if (!server.httpServer) return;
 
-			// Only initialize Socket.IO when explicitly enabled via env var
-			const shouldEnableSocketIO = import.meta.env.VITE_ENABLE_SOCKET_IO === 'true';
-			if (!shouldEnableSocketIO) {
-				console.log('Socket.IO is disabled via ENABLE_SOCKET_IO env var');
+			// Only initialize Socket.IO when Supabase is not being used
+			const supabaseUrl = process.env.PUBLIC_SUPABASE_URL;
+			const isSupabaseEnabled = supabaseUrl && supabaseUrl !== 'your_supabase_url_here';
+			
+			if (isSupabaseEnabled) {
+				console.log('Socket.IO is disabled - using Supabase instead');
 				return;
 			}
 

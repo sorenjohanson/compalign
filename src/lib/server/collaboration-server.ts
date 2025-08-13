@@ -191,6 +191,30 @@ export function setupCollaborationServer(httpServer: HTTPServer) {
 			}
 		});
 
+		socket.on('user-heartbeat', (sessionId) => {
+			try {
+				const session = collaborationSessions.get(sessionId);
+				const user = session?.users.get(socket.id);
+
+				if (!session || !user) return;
+
+				user.lastSeen = new Date();
+			} catch (error) {
+				console.error('Error handling user heartbeat:', error);
+			}
+		});
+
+		socket.on('terminate-session', (sessionId) => {
+			try {
+				const session = collaborationSessions.get(sessionId);
+				if (!session) return;
+
+				socket.to(sessionId).emit('session-terminated');
+			} catch (error) {
+				console.error('Error terminating session:', error);
+			}
+		});
+
 		socket.on('disconnect', () => {
 			const sessionId = socket.data.sessionId;
 			if (sessionId) {
@@ -223,6 +247,7 @@ export function setupCollaborationServer(httpServer: HTTPServer) {
 			console.log(`User ${user.name} left session ${sessionId}`);
 		}
 
+		socket.removeAllListeners();
 		socket.leave(sessionId);
 	}
 
